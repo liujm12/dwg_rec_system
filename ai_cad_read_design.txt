@@ -1,0 +1,662 @@
+如果你的目标只是：
+
+```text
+识别DWG
+→ 导出Excel
+```
+
+那么数据库设计很简单。
+
+但从我们前面讨论的方向看，你的目标已经变成：
+
+```text
+DWG
+ ↓
+工程对象模型
+ ↓
+BOM
+安装表
+轴位表
+IO Mapping
+设备数据库
+数字孪生
+```
+
+那么架构必须从第一天开始支持：
+
+**不确定性、推理、规则、人工修正。**
+
+否则做到后面一定推倒重来。
+
+---
+
+# 一、总体架构
+
+我建议采用：
+
+```text
+                DWG
+                 │
+                 ▼
+        CAD解析引擎
+                 │
+                 ▼
+          原始对象池
+                 │
+        ┌────────────┐
+        │            │
+        ▼            ▼
+   对象识别      属性抽取
+        │            │
+        └──────┬─────┘
+               ▼
+          Object Store
+               │
+               ▼
+         关系推理引擎
+               │
+               ▼
+        Engineering Graph
+               │
+     ┌─────────┼──────────┐
+     ▼         ▼          ▼
+    BOM      安装表    IO Mapping
+     ▼         ▼          ▼
+   ERP      施工系统   PLC系统
+```
+
+---
+
+# 二、数据库不要围绕设备设计
+
+很多团队第一版：
+
+```sql
+DEVICE
+```
+
+表：
+
+```sql
+ID
+NAME
+TYPE
+X
+Y
+```
+
+几年后一定废掉。
+
+---
+
+应该围绕：
+
+```text
+Object
+Relation
+Context
+```
+
+设计。
+
+这是知识图谱思想。
+
+---
+
+# 三、核心表设计
+
+## 1 Object（最核心）
+
+所有识别出来的东西都是Object。
+
+无论：
+
+```text
+DCC
+Rack
+PLC
+柜体
+端子
+桥架
+电缆
+文字
+```
+
+统一存储。
+
+例如：
+
+```sql
+object
+```
+
+| 字段           | 说明          |
+| ------------ | ----------- |
+| id           | UUID        |
+| source_file  | DWG文件       |
+| handle       | DWG Handle  |
+| class        | DCC         |
+| subtype      | DCC_V2      |
+| confidence   | 0.95        |
+| status       | auto/manual |
+| created_time | 时间          |
+
+---
+
+例如：
+
+```json
+{
+  "id":"OBJ001",
+  "class":"DCC",
+  "confidence":0.97
+}
+```
+
+---
+
+# 2 Geometry
+
+几何独立存储。
+
+```sql
+geometry
+```
+
+| 字段        | 说明   |
+| --------- | ---- |
+| object_id | 外键   |
+| center_x  |      |
+| center_y  |      |
+| width     |      |
+| height    |      |
+| rotation  |      |
+| bbox      | json |
+
+---
+
+例如：
+
+```json
+{
+  "object_id":"OBJ001",
+
+  "center_x":1000,
+  "center_y":2000,
+
+  "rotation":90
+}
+```
+
+---
+
+# 3 CAD Meta
+
+保存原始CAD信息。
+
+```sql
+cad_meta
+```
+
+| 字段          | 说明 |
+| ----------- | -- |
+| object_id   |    |
+| layer       |    |
+| block_name  |    |
+| color       |    |
+| linetype    |    |
+| owner_block |    |
+
+---
+
+非常重要。
+
+后期排查错误全靠它。
+
+---
+
+# 4 Attribute
+
+不要给对象加固定字段。
+
+采用EAV模式。
+
+```sql
+attribute
+```
+
+| object_id | key    | value   |
+| --------- | ------ | ------- |
+| OBJ001    | tag    | DCC-001 |
+| OBJ001    | vendor | ABB     |
+| OBJ001    | model  | AC800M  |
+
+---
+
+这样未来：
+
+```text
+PLC
+DCS
+MCC
+仪表
+```
+
+都能扩展。
+
+---
+
+# 5 Relation（第二核心）
+
+这是整个系统的灵魂。
+
+```sql
+relation
+```
+
+| 字段            | 说明          |
+| ------------- | ----------- |
+| id            |             |
+| source_id     |             |
+| target_id     |             |
+| relation_type |             |
+| confidence    |             |
+| source        | auto/manual |
+
+---
+
+例如：
+
+```json
+{
+  "source":"DCC01",
+  "target":"RACK01",
+
+  "relation":"mounted_on",
+
+  "confidence":0.92
+}
+```
+
+---
+
+未来：
+
+```text
+mounted_on
+inside
+belongs_to
+connected_to
+next_to
+powered_by
+signal_to
+```
+
+全部放这里。
+
+---
+
+# 6 Drawing Context
+
+图纸上下文。
+
+```sql
+drawing
+```
+
+| 字段         | 说明 |
+| ---------- | -- |
+| drawing_no |    |
+| revision   |    |
+| discipline |    |
+| sheet      |    |
+
+---
+
+例如：
+
+```text
+E-1001
+Rev C
+Electrical
+```
+
+---
+
+# 四、规则引擎
+
+这是工业项目关键。
+
+---
+
+建立：
+
+```sql
+rule_template
+```
+
+例如：
+
+```yaml
+DCC:
+  mounted_on:
+    DCC_RACK
+
+PLC:
+  inside:
+    CONTROL_CABINET
+```
+
+---
+
+推理时：
+
+```text
+DCC
++
+DCC_RACK
++
+距离<100mm
+```
+
+生成：
+
+```text
+mounted_on
+```
+
+---
+
+# 五、空间索引
+
+必须单独做。
+
+否则：
+
+```text
+10万对象
+```
+
+会崩。
+
+---
+
+推荐：
+
+```text
+PostGIS
+```
+
+或者：
+
+```text
+R-tree
+```
+
+---
+
+支持：
+
+```sql
+nearest()
+contains()
+overlap()
+```
+
+---
+
+例如：
+
+```sql
+找离DCC最近的Rack
+```
+
+毫秒级完成。
+
+---
+
+# 六、轴位系统
+
+单独建模。
+
+不要存在Object里。
+
+---
+
+```sql
+grid_axis
+```
+
+| id | name | direction |
+| -- | ---- | --------- |
+| 1  | A    | X         |
+| 2  | B    | X         |
+| 3  | 1    | Y         |
+
+---
+
+```sql
+object_axis
+```
+
+| object_id | axis_x | axis_y |
+| --------- | ------ | ------ |
+| DCC01     | A      | 3      |
+
+---
+
+以后：
+
+安装表直接生成：
+
+```text
+DCC01
+A-3轴
+```
+
+---
+
+# 七、人工修正系统
+
+这是必须有的。
+
+因为：
+
+```text
+AI永远不可能100%
+```
+
+---
+
+例如：
+
+AI推断：
+
+```text
+DCC01
+mounted_on
+Rack03
+```
+
+置信度：
+
+```text
+0.61
+```
+
+---
+
+工程师修改：
+
+```text
+Rack02
+```
+
+---
+
+保存：
+
+```sql
+manual_relation
+```
+
+---
+
+未来：
+
+还可以反向训练模型。
+
+---
+
+# 八、最终形成知识图谱
+
+不要停留在关系表。
+
+未来可以映射到图数据库。
+
+例如：
+
+Neo4j
+
+或者：
+
+[Apache AGE](https://age.apache.org/?utm_source=chatgpt.com)
+
+---
+
+结构变成：
+
+```text
+ControlRoom01
+    │
+    ├── Cabinet01
+    │        │
+    │        ├── Rack01
+    │        │       │
+    │        │       └── DCC01
+    │
+    └── PLC01
+```
+
+---
+
+# 我认为最适合你的产品架构
+
+## V1
+
+目标：
+
+```text
+DWG
+↓
+Object
+↓
+Excel
+```
+
+实现：
+
+* Object
+* Geometry
+* CAD Meta
+* Attribute
+
+---
+
+## V2
+
+增加：
+
+* Relation
+* Rule Engine
+* Spatial Engine
+
+生成：
+
+```text
+安装表
+设备清单
+```
+
+---
+
+## V3
+
+增加：
+
+* Axis System
+* Electrical Connection
+* Hierarchy
+
+生成：
+
+```text
+IO Mapping
+Cable Schedule
+Installation Schedule
+```
+
+---
+
+## V4
+
+增加：
+
+* Graph Database
+* LLM Agent
+
+最终：
+
+```text
+上传DWG
+
+↓
+
+自动重建工程模型
+
+↓
+
+直接问：
+
+"DCC-101安装在哪？"
+
+"PLC-03连接了哪些设备？"
+
+"生成本区域安装清单"
+
+"统计ABB设备数量"
+```
+
+---
+
+如果是我来做这个产品，我会把**Object + Relation + Rule Engine**作为第一天就确定不变的核心架构。
+
+因为无论未来是：
+
+* PLC工程
+* 电气设计
+* DCS系统
+* MCC系统
+* 管道仪表图(P&ID)
+
+最终都能映射成：
+
+```text
+Object
++
+Relation
++
+Context
+```
+
+而这套模型能够最大程度容纳你刚才提到的各种“特殊情况”，包括：
+
+* 不同图层
+* 图层混乱
+* Block不规范
+* Tag缺失
+* 安装关系需要推理
+* 轴位需要计算
+* 人工修正覆盖AI结果
+
+这些都是工业现场的常态，而不是例外。
