@@ -13,15 +13,24 @@ from .repositories import (
     RelationRepository,
     seed_rules,
 )
+from .importers.normalized_json import NormalizedJsonImporter
 from .services.exports import CsvExporter
 from .services.object_store import ObjectStore
 from .services.relation_engine import RelationEngine
 from .services.spatial_index import SpatialIndex
+from .services.taxonomy import TaxonomySeeder
 
 
 def cmd_init_db(_: argparse.Namespace) -> None:
     path = init_database()
     print(f"initialized: {path}")
+
+
+def cmd_seed_taxonomy(_: argparse.Namespace) -> None:
+    with session() as connection:
+        seeder = TaxonomySeeder(connection)
+        result = seeder.seed_file()
+    print(json.dumps(result, ensure_ascii=False, indent=2))
 
 
 def cmd_seed_demo(_: argparse.Namespace) -> None:
@@ -116,6 +125,13 @@ def cmd_infer_relations(_: argparse.Namespace) -> None:
     print(json.dumps({"inferred": inferred, "relations": relations}, ensure_ascii=False, indent=2))
 
 
+def cmd_import_json(args: argparse.Namespace) -> None:
+    with session() as connection:
+        importer = NormalizedJsonImporter(connection)
+        summary = importer.import_file(args.input)
+    print(json.dumps(summary, ensure_ascii=False, indent=2))
+
+
 def cmd_export_csv(args: argparse.Namespace) -> None:
     with session() as connection:
         output = CsvExporter(connection).export_objects(args.output)
@@ -130,8 +146,15 @@ def build_parser() -> argparse.ArgumentParser:
     init_db = subparsers.add_parser("init-db", help="Create database schema.")
     init_db.set_defaults(func=cmd_init_db)
 
+    seed_tax = subparsers.add_parser("seed-taxonomy", help="Seed object_class from taxonomy JSON.")
+    seed_tax.set_defaults(func=cmd_seed_taxonomy)
+
     seed_demo = subparsers.add_parser("seed-demo", help="Insert demo drawing, objects, and rules.")
     seed_demo.set_defaults(func=cmd_seed_demo)
+
+    import_json = subparsers.add_parser("import-json", help="Import normalized CAD parser JSON.")
+    import_json.add_argument("--input", required=True, help="Path to normalized JSON file.")
+    import_json.set_defaults(func=cmd_import_json)
 
     list_objects = subparsers.add_parser("list-objects", help="List recognized objects.")
     list_objects.add_argument("--class-name")

@@ -1,0 +1,71 @@
+{
+  "version": "0.1",
+  "project": {
+    "code": "DEMO",
+    "name": "Demo CAD Recognition Project"
+  },
+  "drawing": {
+    "drawing_no": "E-1001",
+    "revision": "C",
+    "discipline": "Electrical",
+    "sheet": "1",
+    "title": "Demo control cabinet layout",
+    "source_file": "demo.dwg"
+  },
+  "objects": [
+    {
+      "class_name": "DCC_RACK",
+      "subtype": "RACK_V1",
+      "source_file": "demo.dwg",
+      "handle": "RACK01",
+      "confidence": 0.98,
+      "parser_name": "demo_parser",
+      "parser_version": "0.1",
+      "recognition_model": "rule_demo",
+      "recognition_version": "0.1",
+      "geometry": {
+        "center_x": 1000,
+        "center_y": 2000,
+        "width": 300,
+        "height": 500
+      },
+      "cad_meta": {
+        "layer": "E-EQUIP",
+        "block_name": "DCC_RACK_BLOCK",
+        "color": "7"
+      },
+      "attributes": {
+        "tag": "RACK-01",
+        "vendor": "Generic"
+      }
+    },
+    {
+      "class_name": "DCC",
+      "subtype": "DCC_V2",
+      "source_file": "demo.dwg",
+      "handle": "DCC01",
+      "confidence": 0.97,
+      "parser_name": "demo_parser",
+      "parser_version": "0.1",
+      "recognition_model": "rule_demo",
+      "recognition_version": "0.1",
+      "geometry": {
+        "center_x": 1040,
+        "center_y": 2030,
+        "width": 80,
+        "height": 120,
+        "rotation": 90
+      },
+      "cad_meta": {
+        "layer": "E-EQUIP",
+        "block_name": "DCC_BLOCK",
+        "color": "3"
+      },
+      "attributes": {
+        "tag": "DCC-001",
+        "vendor": "ABB",
+        "model": "AC800M"
+      }
+    }
+  ]
+}

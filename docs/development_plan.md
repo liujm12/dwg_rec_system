@@ -7,20 +7,20 @@ This plan gives Claude Code and DeepSeek sub-agents a staged path for developing
 The project currently has:
 
 - SQLite schema for project, drawing, objects, geometry, CAD metadata, attributes, relations, candidates, corrections, artifacts, and axis tables.
-- `ObjectStore` for object ingestion.
+- `ObjectStore` for object ingestion (create/update via `source_file + handle`).
 - `SpatialIndex` for nearest, contains, and overlap queries.
-- `RelationEngine` for simple rule-based relation inference.
-- CLI commands for initialization, demo seeding, listing, inference, and CSV export.
-- A cleanroom CAD taxonomy JSON file.
-- Baseline pytest coverage for object, spatial, and relation flow.
+- `RelationEngine` for simple rule-based relation inference via `relation_candidate → accept → relation`.
+- `NormalizedJsonImporter` for standardized JSON import (Round 1 output).
+- `TaxonomySeeder` for idempotent taxonomy seeding (164 object classes, Round 1 output).
+- CLI commands: `init-db`, `seed-taxonomy`, `import-json`, `seed-demo`, `list-objects`, `nearest`, `infer-relations`, `export-csv`.
+- Cleanroom CAD taxonomy JSON (v0.2.0, 164 classes).
+- Comprehensive test coverage: import, taxonomy, integration, and baseline flow (28 tests).
 
-The missing production-enabling path is:
+**Milestone 1 is complete.** The normalized import path works end to end.
 
-```text
-real parser output -> normalized import -> object store
-```
+## Milestone 1: Normalized Import Foundation ✅
 
-## Milestone 1: Normalized Import Foundation
+**Status: COMPLETE (2026-06-10)**
 
 Goal:
 
