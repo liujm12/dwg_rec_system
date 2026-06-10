@@ -1,765 +1,3641 @@
 {
-  "version": "0.1.0",
+  "version": "0.2.0",
   "domain": "cleanroom_cad",
-  "description": "无尘室 CAD 图纸识别的专业分类字典与对象分类字典。code 用作系统内部稳定标识，name_cn 用作展示名称。",
+  "description": "无尘室 CAD 图纸识别的专业分类字典与对象分类字典。code 用作系统内部稳定标识，name_cn 用作展示名称。本文件覆盖常见洁净室、机电、管道、气体、自控、弱电、消防、建筑、结构与工艺设备对象，但仍允许按项目扩展。",
   "disciplines": [
     {
       "code": "GENERAL",
       "name_cn": "通用图纸信息",
       "scope": "所有专业共用的图框、标题栏、轴网、房间、标注、图例、尺寸、引线等基础对象。",
-      "subdisciplines": ["TITLE_BLOCK", "GRID_AXIS", "ROOM", "ANNOTATION", "LEGEND", "DIMENSION"]
+      "subdisciplines": [
+        "TITLE_BLOCK",
+        "GRID_AXIS",
+        "ROOM",
+        "ANNOTATION",
+        "LEGEND",
+        "DIMENSION"
+      ]
     },
     {
       "code": "ARCH",
       "name_cn": "建筑",
       "scope": "建筑平面、墙体、门窗、楼板、洞口、建筑房间边界等。",
-      "subdisciplines": ["WALL", "DOOR_WINDOW", "OPENING", "FLOOR", "BUILDING_ROOM"]
+      "subdisciplines": [
+        "WALL",
+        "DOOR_WINDOW",
+        "OPENING",
+        "FLOOR",
+        "BUILDING_ROOM"
+      ]
     },
     {
       "code": "INT",
       "name_cn": "内装",
       "scope": "洁净室内装、洁净板墙、吊顶、地坪、洁净门窗、房间功能与洁净等级标注。",
-      "subdisciplines": ["CLEANROOM_PARTITION", "CEILING", "FLOOR_FINISH", "CLEANROOM_DOOR_WINDOW", "ROOM_FINISH"]
+      "subdisciplines": [
+        "CLEANROOM_PARTITION",
+        "CEILING",
+        "FLOOR_FINISH",
+        "CLEANROOM_DOOR_WINDOW",
+        "ROOM_FINISH"
+      ]
     },
     {
       "code": "STRUCT",
       "name_cn": "钢结构",
       "scope": "钢柱、钢梁、支撑、檩条、吊杆、埋件、节点详图等结构构件。",
-      "subdisciplines": ["STEEL_COLUMN", "STEEL_BEAM", "BRACING", "PURLIN", "HANGER", "EMBEDDED_PART"]
+      "subdisciplines": [
+        "STEEL_COLUMN",
+        "STEEL_BEAM",
+        "BRACING",
+        "PURLIN",
+        "HANGER",
+        "EMBEDDED_PART"
+      ]
     },
     {
       "code": "HVAC",
       "name_cn": "暖通空调",
       "scope": "送风、回风、排风、新风、洁净空调、FFU、HEPA、MAU、AHU、风管、风口、风阀等。",
-      "subdisciplines": ["SUPPLY_AIR", "RETURN_AIR", "EXHAUST_AIR", "FRESH_AIR", "CLEAN_AIR", "AIR_EQUIPMENT", "AIR_TERMINAL"]
+      "subdisciplines": [
+        "SUPPLY_AIR",
+        "RETURN_AIR",
+        "EXHAUST_AIR",
+        "FRESH_AIR",
+        "CLEAN_AIR",
+        "AIR_EQUIPMENT",
+        "AIR_TERMINAL"
+      ]
     },
     {
       "code": "FIRE",
       "name_cn": "消防",
       "scope": "水消防、喷淋、消火栓、消防管、火灾报警、烟感、温感、手报、声光报警、防排烟相关对象。",
-      "subdisciplines": ["SPRINKLER", "FIRE_HYDRANT", "FIRE_PIPE", "FIRE_ALARM", "SMOKE_EXHAUST"]
+      "subdisciplines": [
+        "SPRINKLER",
+        "FIRE_HYDRANT",
+        "FIRE_PIPE",
+        "FIRE_ALARM",
+        "SMOKE_EXHAUST"
+      ]
     },
     {
       "code": "ELEC",
       "name_cn": "强电",
       "scope": "配电箱、配电柜、桥架、线槽、电缆、电源插座、灯具、接地、防雷等。",
-      "subdisciplines": ["DISTRIBUTION", "CABLE_TRAY", "LIGHTING", "POWER_OUTLET", "GROUNDING"]
+      "subdisciplines": [
+        "DISTRIBUTION",
+        "CABLE_TRAY",
+        "LIGHTING",
+        "POWER_OUTLET",
+        "GROUNDING"
+      ]
     },
     {
       "code": "ELV",
       "name_cn": "弱电",
       "scope": "网络、电话、门禁、监控、广播、综合布线、弱电桥架与终端点位。",
-      "subdisciplines": ["NETWORK", "ACCESS_CONTROL", "CCTV", "PA_SYSTEM", "ELV_CABLING"]
+      "subdisciplines": [
+        "NETWORK",
+        "ACCESS_CONTROL",
+        "CCTV",
+        "PA_SYSTEM",
+        "ELV_CABLING"
+      ]
     },
     {
       "code": "PIPING",
       "name_cn": "管道",
       "scope": "给水、排水、冷冻水、冷却水、冷凝水、工艺水、阀门、管件、管道附件等。",
-      "subdisciplines": ["WATER_SUPPLY", "DRAINAGE", "CHILLED_WATER", "COOLING_WATER", "CONDENSATE", "PROCESS_WATER"]
+      "subdisciplines": [
+        "WATER_SUPPLY",
+        "DRAINAGE",
+        "CHILLED_WATER",
+        "COOLING_WATER",
+        "CONDENSATE",
+        "PROCESS_WATER"
+      ]
     },
     {
       "code": "GAS",
       "name_cn": "气体",
       "scope": "特气、压缩空气、氮气、真空、排气、气体阀箱、气体柜、气体管道与检测点。",
-      "subdisciplines": ["SPECIAL_GAS", "COMPRESSED_AIR", "NITROGEN", "VACUUM", "GAS_EXHAUST", "GAS_CABINET"]
+      "subdisciplines": [
+        "SPECIAL_GAS",
+        "COMPRESSED_AIR",
+        "NITROGEN",
+        "VACUUM",
+        "GAS_EXHAUST",
+        "GAS_CABINET"
+      ]
     },
     {
       "code": "BMS",
       "name_cn": "自控与楼控",
       "scope": "楼控点位、传感器、执行器、控制柜、DDC、压差、温湿度、风阀执行器等。",
-      "subdisciplines": ["CONTROL_PANEL", "SENSOR", "ACTUATOR", "DIFFERENTIAL_PRESSURE", "TEMPERATURE_HUMIDITY"]
+      "subdisciplines": [
+        "CONTROL_PANEL",
+        "SENSOR",
+        "ACTUATOR",
+        "DIFFERENTIAL_PRESSURE",
+        "TEMPERATURE_HUMIDITY"
+      ]
     },
     {
       "code": "EQUIPMENT",
       "name_cn": "工艺与洁净设备",
       "scope": "工艺设备、洁净工作台、传递窗、风淋室、货淋室、洁净棚、设备基础与设备编号。",
-      "subdisciplines": ["PROCESS_EQUIPMENT", "CLEANROOM_EQUIPMENT", "EQUIPMENT_FOUNDATION"]
+      "subdisciplines": [
+        "PROCESS_EQUIPMENT",
+        "CLEANROOM_EQUIPMENT",
+        "EQUIPMENT_FOUNDATION"
+      ]
     }
   ],
   "object_classes": [
     {
-      "code": "TITLE_BLOCK",
-      "name_cn": "标题栏",
+      "code": "COORDINATE_MARK",
+      "name_cn": "坐标标注",
       "discipline": "GENERAL",
-      "parent_code": null,
-      "aliases": ["图框", "标题栏", "drawing title", "title block"],
-      "attributes": ["drawing_no", "drawing_name", "revision", "scale", "designer", "checker", "date"],
-      "relations": ["belongs_to_project"]
+      "parent_code": "TEXT_LABEL",
+      "aliases": [
+        "坐标",
+        "coordinate mark"
+      ],
+      "attributes": [
+        "x",
+        "y",
+        "z",
+        "coordinate_system"
+      ],
+      "relations": [
+        "locates_object"
+      ]
     },
     {
-      "code": "DRAWING_LEGEND",
-      "name_cn": "图例",
+      "code": "DETAIL_CALLOUT",
+      "name_cn": "详图索引",
       "discipline": "GENERAL",
-      "parent_code": null,
-      "aliases": ["图例", "legend", "symbol legend"],
-      "attributes": ["symbol", "description", "discipline"],
-      "relations": ["defines_symbol"]
-    },
-    {
-      "code": "GRID_AXIS",
-      "name_cn": "轴网",
-      "discipline": "GENERAL",
-      "parent_code": null,
-      "aliases": ["轴线", "轴网", "grid", "axis"],
-      "attributes": ["axis_name", "direction", "position"],
-      "relations": ["locates_object"]
-    },
-    {
-      "code": "ROOM",
-      "name_cn": "房间",
-      "discipline": "GENERAL",
-      "parent_code": null,
-      "aliases": ["房间", "room", "洁净室", "cleanroom"],
-      "attributes": ["room_no", "room_name", "cleanliness_class", "pressure", "temperature", "humidity", "area"],
-      "relations": ["contains", "adjacent_to", "served_by"]
-    },
-    {
-      "code": "TEXT_LABEL",
-      "name_cn": "文字标注",
-      "discipline": "GENERAL",
-      "parent_code": null,
-      "aliases": ["文字", "标注", "注释", "text", "label", "annotation"],
-      "attributes": ["text", "height", "rotation", "style"],
-      "relations": ["labels"]
+      "parent_code": "TEXT_LABEL",
+      "aliases": [
+        "详图索引",
+        "节点索引",
+        "detail callout"
+      ],
+      "attributes": [
+        "detail_no",
+        "sheet_ref",
+        "scale"
+      ],
+      "relations": [
+        "references_detail",
+        "points_to"
+      ]
     },
     {
       "code": "DIMENSION",
       "name_cn": "尺寸标注",
       "discipline": "GENERAL",
       "parent_code": null,
-      "aliases": ["尺寸", "dimension", "dim"],
-      "attributes": ["value", "unit", "dimension_type"],
-      "relations": ["measures"]
+      "aliases": [
+        "尺寸",
+        "dimension",
+        "dim"
+      ],
+      "attributes": [
+        "value",
+        "unit",
+        "dimension_type"
+      ],
+      "relations": [
+        "measures"
+      ]
+    },
+    {
+      "code": "DRAWING_LEGEND",
+      "name_cn": "图例",
+      "discipline": "GENERAL",
+      "parent_code": null,
+      "aliases": [
+        "图例",
+        "legend",
+        "symbol legend"
+      ],
+      "attributes": [
+        "symbol",
+        "description",
+        "discipline"
+      ],
+      "relations": [
+        "defines_symbol"
+      ]
+    },
+    {
+      "code": "ELEVATION_MARK",
+      "name_cn": "立面标记",
+      "discipline": "GENERAL",
+      "parent_code": "TEXT_LABEL",
+      "aliases": [
+        "立面",
+        "立面符号",
+        "elevation mark"
+      ],
+      "attributes": [
+        "elevation_no",
+        "sheet_ref",
+        "direction"
+      ],
+      "relations": [
+        "references_detail"
+      ]
+    },
+    {
+      "code": "GRID_AXIS",
+      "name_cn": "轴网",
+      "discipline": "GENERAL",
+      "parent_code": null,
+      "aliases": [
+        "轴线",
+        "轴网",
+        "grid",
+        "axis"
+      ],
+      "attributes": [
+        "axis_name",
+        "direction",
+        "position"
+      ],
+      "relations": [
+        "locates_object"
+      ]
     },
     {
       "code": "LEADER",
       "name_cn": "引线",
       "discipline": "GENERAL",
       "parent_code": null,
-      "aliases": ["引线", "leader", "callout"],
-      "attributes": ["arrow_type", "text"],
-      "relations": ["points_to", "labels"]
+      "aliases": [
+        "引线",
+        "leader",
+        "callout"
+      ],
+      "attributes": [
+        "arrow_type",
+        "text"
+      ],
+      "relations": [
+        "points_to",
+        "labels"
+      ]
     },
     {
-      "code": "WALL",
-      "name_cn": "墙体",
+      "code": "MATCH_LINE",
+      "name_cn": "拼接线",
+      "discipline": "GENERAL",
+      "parent_code": null,
+      "aliases": [
+        "拼接线",
+        "match line"
+      ],
+      "attributes": [
+        "match_ref",
+        "direction"
+      ],
+      "relations": [
+        "references_drawing"
+      ]
+    },
+    {
+      "code": "NORTH_ARROW",
+      "name_cn": "指北针",
+      "discipline": "GENERAL",
+      "parent_code": null,
+      "aliases": [
+        "指北针",
+        "north arrow"
+      ],
+      "attributes": [
+        "rotation",
+        "style"
+      ],
+      "relations": [
+        "orients_drawing"
+      ]
+    },
+    {
+      "code": "REVISION_CLOUD",
+      "name_cn": "修订云线",
+      "discipline": "GENERAL",
+      "parent_code": null,
+      "aliases": [
+        "修订云线",
+        "云线",
+        "revision cloud"
+      ],
+      "attributes": [
+        "revision",
+        "description",
+        "date"
+      ],
+      "relations": [
+        "marks_revision"
+      ]
+    },
+    {
+      "code": "ROOM",
+      "name_cn": "房间",
+      "discipline": "GENERAL",
+      "parent_code": null,
+      "aliases": [
+        "房间",
+        "room",
+        "洁净室",
+        "cleanroom"
+      ],
+      "attributes": [
+        "room_no",
+        "room_name",
+        "cleanliness_class",
+        "pressure",
+        "temperature",
+        "humidity",
+        "area"
+      ],
+      "relations": [
+        "contains",
+        "adjacent_to",
+        "served_by"
+      ]
+    },
+    {
+      "code": "SECTION_MARK",
+      "name_cn": "剖面标记",
+      "discipline": "GENERAL",
+      "parent_code": "TEXT_LABEL",
+      "aliases": [
+        "剖面",
+        "剖切符号",
+        "section mark"
+      ],
+      "attributes": [
+        "section_no",
+        "sheet_ref",
+        "direction"
+      ],
+      "relations": [
+        "references_detail"
+      ]
+    },
+    {
+      "code": "TEXT_LABEL",
+      "name_cn": "文字标注",
+      "discipline": "GENERAL",
+      "parent_code": null,
+      "aliases": [
+        "文字",
+        "标注",
+        "注释",
+        "text",
+        "label",
+        "annotation"
+      ],
+      "attributes": [
+        "text",
+        "height",
+        "rotation",
+        "style"
+      ],
+      "relations": [
+        "labels"
+      ]
+    },
+    {
+      "code": "TITLE_BLOCK",
+      "name_cn": "标题栏",
+      "discipline": "GENERAL",
+      "parent_code": null,
+      "aliases": [
+        "图框",
+        "标题栏",
+        "drawing title",
+        "title block"
+      ],
+      "attributes": [
+        "drawing_no",
+        "drawing_name",
+        "revision",
+        "scale",
+        "designer",
+        "checker",
+        "date"
+      ],
+      "relations": [
+        "belongs_to_project"
+      ]
+    },
+    {
+      "code": "ACCESS_PANEL",
+      "name_cn": "检修口",
+      "discipline": "ARCH",
+      "parent_code": "OPENING",
+      "aliases": [
+        "检修口",
+        "access panel",
+        "检修门"
+      ],
+      "attributes": [
+        "panel_no",
+        "width",
+        "height",
+        "fire_rating"
+      ],
+      "relations": [
+        "installed_in",
+        "reserved_for"
+      ]
+    },
+    {
+      "code": "BUILDING_COLUMN",
+      "name_cn": "建筑柱",
       "discipline": "ARCH",
       "parent_code": null,
-      "aliases": ["墙", "墙体", "wall"],
-      "attributes": ["wall_type", "thickness", "fire_rating", "material"],
-      "relations": ["bounds_room", "has_opening"]
+      "aliases": [
+        "柱",
+        "建筑柱",
+        "column"
+      ],
+      "attributes": [
+        "column_no",
+        "section",
+        "material"
+      ],
+      "relations": [
+        "supports",
+        "located_on_axis"
+      ]
+    },
+    {
+      "code": "CURTAIN_WALL",
+      "name_cn": "幕墙",
+      "discipline": "ARCH",
+      "parent_code": "WALL",
+      "aliases": [
+        "幕墙",
+        "curtain wall"
+      ],
+      "attributes": [
+        "system",
+        "glass_type",
+        "fire_rating"
+      ],
+      "relations": [
+        "bounds_room",
+        "installed_in"
+      ]
     },
     {
       "code": "DOOR",
       "name_cn": "门",
       "discipline": "ARCH",
       "parent_code": null,
-      "aliases": ["门", "door", "M"],
-      "attributes": ["door_no", "width", "height", "fire_rating", "swing_direction"],
-      "relations": ["installed_in", "connects_room"]
+      "aliases": [
+        "门",
+        "door",
+        "M"
+      ],
+      "attributes": [
+        "door_no",
+        "width",
+        "height",
+        "fire_rating",
+        "swing_direction"
+      ],
+      "relations": [
+        "installed_in",
+        "connects_room"
+      ]
     },
     {
-      "code": "WINDOW",
-      "name_cn": "窗",
+      "code": "FIRE_COMPARTMENT",
+      "name_cn": "防火分区",
+      "discipline": "ARCH",
+      "parent_code": "ROOM",
+      "aliases": [
+        "防火分区",
+        "fire compartment"
+      ],
+      "attributes": [
+        "compartment_no",
+        "fire_rating",
+        "area"
+      ],
+      "relations": [
+        "contains",
+        "bounds_room"
+      ]
+    },
+    {
+      "code": "FLOOR_SLAB",
+      "name_cn": "楼板",
       "discipline": "ARCH",
       "parent_code": null,
-      "aliases": ["窗", "window", "W"],
-      "attributes": ["window_no", "width", "height", "glass_type"],
-      "relations": ["installed_in"]
+      "aliases": [
+        "楼板",
+        "slab",
+        "floor slab"
+      ],
+      "attributes": [
+        "thickness",
+        "material",
+        "elevation"
+      ],
+      "relations": [
+        "supports",
+        "bounds_room"
+      ]
     },
     {
       "code": "OPENING",
       "name_cn": "洞口",
       "discipline": "ARCH",
       "parent_code": null,
-      "aliases": ["洞口", "opening", "孔洞"],
-      "attributes": ["opening_no", "width", "height", "purpose"],
-      "relations": ["penetrates", "reserved_for"]
+      "aliases": [
+        "洞口",
+        "opening",
+        "孔洞"
+      ],
+      "attributes": [
+        "opening_no",
+        "width",
+        "height",
+        "purpose"
+      ],
+      "relations": [
+        "penetrates",
+        "reserved_for"
+      ]
     },
     {
-      "code": "CLEANROOM_PARTITION",
-      "name_cn": "洁净隔墙",
-      "discipline": "INT",
-      "parent_code": "WALL",
-      "aliases": ["洁净板", "彩钢板", "洁净隔墙", "partition", "sandwich panel"],
-      "attributes": ["panel_type", "thickness", "fire_rating", "finish"],
-      "relations": ["bounds_room", "connected_to"]
+      "code": "RAMP",
+      "name_cn": "坡道",
+      "discipline": "ARCH",
+      "parent_code": null,
+      "aliases": [
+        "坡道",
+        "ramp"
+      ],
+      "attributes": [
+        "slope",
+        "width",
+        "finish"
+      ],
+      "relations": [
+        "connects_level"
+      ]
     },
     {
-      "code": "CLEANROOM_DOOR",
-      "name_cn": "洁净门",
-      "discipline": "INT",
-      "parent_code": "DOOR",
-      "aliases": ["洁净门", "cleanroom door", "气密门"],
-      "attributes": ["door_no", "width", "height", "air_tight", "interlock"],
-      "relations": ["installed_in", "connects_room"]
+      "code": "ROOM_BOUNDARY",
+      "name_cn": "房间边界",
+      "discipline": "ARCH",
+      "parent_code": "ROOM",
+      "aliases": [
+        "房间边界",
+        "room boundary"
+      ],
+      "attributes": [
+        "room_no",
+        "area",
+        "perimeter"
+      ],
+      "relations": [
+        "bounds_room",
+        "contains"
+      ]
     },
     {
-      "code": "OBSERVATION_WINDOW",
-      "name_cn": "观察窗",
+      "code": "STAIR",
+      "name_cn": "楼梯",
+      "discipline": "ARCH",
+      "parent_code": null,
+      "aliases": [
+        "楼梯",
+        "stair"
+      ],
+      "attributes": [
+        "stair_no",
+        "width",
+        "riser",
+        "tread"
+      ],
+      "relations": [
+        "connects_level"
+      ]
+    },
+    {
+      "code": "WALL",
+      "name_cn": "墙体",
+      "discipline": "ARCH",
+      "parent_code": null,
+      "aliases": [
+        "墙",
+        "墙体",
+        "wall"
+      ],
+      "attributes": [
+        "wall_type",
+        "thickness",
+        "fire_rating",
+        "material"
+      ],
+      "relations": [
+        "bounds_room",
+        "has_opening"
+      ]
+    },
+    {
+      "code": "WINDOW",
+      "name_cn": "窗",
+      "discipline": "ARCH",
+      "parent_code": null,
+      "aliases": [
+        "窗",
+        "window",
+        "W"
+      ],
+      "attributes": [
+        "window_no",
+        "width",
+        "height",
+        "glass_type"
+      ],
+      "relations": [
+        "installed_in"
+      ]
+    },
+    {
+      "code": "AIR_RETURN_CHASE",
+      "name_cn": "回风夹道",
       "discipline": "INT",
-      "parent_code": "WINDOW",
-      "aliases": ["观察窗", "洁净窗", "observation window"],
-      "attributes": ["window_no", "width", "height", "glass_type"],
-      "relations": ["installed_in"]
+      "parent_code": "ROOM",
+      "aliases": [
+        "回风夹道",
+        "return air chase"
+      ],
+      "attributes": [
+        "chase_no",
+        "width",
+        "height"
+      ],
+      "relations": [
+        "serves_room",
+        "connected_to"
+      ]
     },
     {
       "code": "CEILING",
       "name_cn": "吊顶",
       "discipline": "INT",
       "parent_code": null,
-      "aliases": ["吊顶", "ceiling", "天花"],
-      "attributes": ["ceiling_type", "height", "fire_rating", "finish"],
-      "relations": ["covers_room", "supports"]
+      "aliases": [
+        "吊顶",
+        "ceiling",
+        "天花"
+      ],
+      "attributes": [
+        "ceiling_type",
+        "height",
+        "fire_rating",
+        "finish"
+      ],
+      "relations": [
+        "covers_room",
+        "supports"
+      ]
     },
     {
-      "code": "FLOOR_FINISH",
-      "name_cn": "地坪",
+      "code": "CEILING_ACCESS_PANEL",
+      "name_cn": "吊顶检修口",
       "discipline": "INT",
-      "parent_code": null,
-      "aliases": ["地坪", "地面", "floor finish", "epoxy floor"],
-      "attributes": ["finish_type", "thickness", "anti_static"],
-      "relations": ["belongs_to_room"]
+      "parent_code": "ACCESS_PANEL",
+      "aliases": [
+        "吊顶检修口",
+        "ceiling access panel"
+      ],
+      "attributes": [
+        "panel_no",
+        "size",
+        "fire_rating"
+      ],
+      "relations": [
+        "installed_in",
+        "mounted_on"
+      ]
+    },
+    {
+      "code": "CEILING_GRID",
+      "name_cn": "吊顶龙骨",
+      "discipline": "INT",
+      "parent_code": "CEILING",
+      "aliases": [
+        "吊顶龙骨",
+        "ceiling grid",
+        "龙骨"
+      ],
+      "attributes": [
+        "grid_size",
+        "material",
+        "elevation"
+      ],
+      "relations": [
+        "supports",
+        "mounted_on"
+      ]
     },
     {
       "code": "CLEANLINESS_LABEL",
       "name_cn": "洁净等级标注",
       "discipline": "INT",
       "parent_code": "TEXT_LABEL",
-      "aliases": ["ISO 5", "ISO 6", "ISO 7", "ISO 8", "百级", "千级", "万级", "十万级", "洁净等级"],
-      "attributes": ["cleanliness_class", "standard"],
-      "relations": ["labels_room"]
+      "aliases": [
+        "ISO 5",
+        "ISO 6",
+        "ISO 7",
+        "ISO 8",
+        "百级",
+        "千级",
+        "万级",
+        "十万级",
+        "洁净等级"
+      ],
+      "attributes": [
+        "cleanliness_class",
+        "standard"
+      ],
+      "relations": [
+        "labels_room"
+      ]
     },
     {
-      "code": "STEEL_COLUMN",
-      "name_cn": "钢柱",
-      "discipline": "STRUCT",
-      "parent_code": null,
-      "aliases": ["钢柱", "column", "H型钢柱", "box column"],
-      "attributes": ["member_no", "section", "material", "elevation"],
-      "relations": ["supports", "located_on_axis"]
+      "code": "CLEANROOM_DOOR",
+      "name_cn": "洁净门",
+      "discipline": "INT",
+      "parent_code": "DOOR",
+      "aliases": [
+        "洁净门",
+        "cleanroom door",
+        "气密门"
+      ],
+      "attributes": [
+        "door_no",
+        "width",
+        "height",
+        "air_tight",
+        "interlock"
+      ],
+      "relations": [
+        "installed_in",
+        "connects_room"
+      ]
     },
     {
-      "code": "STEEL_BEAM",
-      "name_cn": "钢梁",
-      "discipline": "STRUCT",
+      "code": "CLEANROOM_PANEL",
+      "name_cn": "洁净板",
+      "discipline": "INT",
+      "parent_code": "CLEANROOM_PARTITION",
+      "aliases": [
+        "洁净板",
+        "彩钢板",
+        "sandwich panel"
+      ],
+      "attributes": [
+        "panel_type",
+        "thickness",
+        "finish",
+        "module_width"
+      ],
+      "relations": [
+        "connected_to",
+        "bounds_room"
+      ]
+    },
+    {
+      "code": "CLEANROOM_PARTITION",
+      "name_cn": "洁净隔墙",
+      "discipline": "INT",
+      "parent_code": "WALL",
+      "aliases": [
+        "洁净板",
+        "彩钢板",
+        "洁净隔墙",
+        "partition",
+        "sandwich panel"
+      ],
+      "attributes": [
+        "panel_type",
+        "thickness",
+        "fire_rating",
+        "finish"
+      ],
+      "relations": [
+        "bounds_room",
+        "connected_to"
+      ]
+    },
+    {
+      "code": "COVING",
+      "name_cn": "圆弧角",
+      "discipline": "INT",
       "parent_code": null,
-      "aliases": ["钢梁", "beam", "H型钢梁"],
-      "attributes": ["member_no", "section", "material", "elevation"],
-      "relations": ["supported_by", "supports", "connected_to"]
+      "aliases": [
+        "圆弧角",
+        "阴角圆弧",
+        "coving"
+      ],
+      "attributes": [
+        "radius",
+        "material",
+        "finish"
+      ],
+      "relations": [
+        "installed_in",
+        "connected_to"
+      ]
+    },
+    {
+      "code": "FLOOR_FINISH",
+      "name_cn": "地坪",
+      "discipline": "INT",
+      "parent_code": null,
+      "aliases": [
+        "地坪",
+        "地面",
+        "floor finish",
+        "epoxy floor"
+      ],
+      "attributes": [
+        "finish_type",
+        "thickness",
+        "anti_static"
+      ],
+      "relations": [
+        "belongs_to_room"
+      ]
+    },
+    {
+      "code": "OBSERVATION_WINDOW",
+      "name_cn": "观察窗",
+      "discipline": "INT",
+      "parent_code": "WINDOW",
+      "aliases": [
+        "观察窗",
+        "洁净窗",
+        "observation window"
+      ],
+      "attributes": [
+        "window_no",
+        "width",
+        "height",
+        "glass_type"
+      ],
+      "relations": [
+        "installed_in"
+      ]
+    },
+    {
+      "code": "ANCHOR_BOLT",
+      "name_cn": "锚栓",
+      "discipline": "STRUCT",
+      "parent_code": "EMBEDDED_PART",
+      "aliases": [
+        "锚栓",
+        "anchor bolt"
+      ],
+      "attributes": [
+        "bolt_size",
+        "grade",
+        "length"
+      ],
+      "relations": [
+        "embedded_in",
+        "supports"
+      ]
+    },
+    {
+      "code": "BASE_PLATE",
+      "name_cn": "底板",
+      "discipline": "STRUCT",
+      "parent_code": "EMBEDDED_PART",
+      "aliases": [
+        "底板",
+        "base plate"
+      ],
+      "attributes": [
+        "plate_size",
+        "thickness",
+        "material"
+      ],
+      "relations": [
+        "mounted_on",
+        "supports"
+      ]
     },
     {
       "code": "BRACING",
       "name_cn": "支撑",
       "discipline": "STRUCT",
       "parent_code": null,
-      "aliases": ["支撑", "bracing", "斜撑"],
-      "attributes": ["member_no", "section", "material"],
-      "relations": ["connected_to"]
-    },
-    {
-      "code": "HANGER",
-      "name_cn": "吊杆",
-      "discipline": "STRUCT",
-      "parent_code": null,
-      "aliases": ["吊杆", "hanger", "吊架"],
-      "attributes": ["hanger_type", "diameter", "spacing"],
-      "relations": ["supports", "mounted_on"]
+      "aliases": [
+        "支撑",
+        "bracing",
+        "斜撑"
+      ],
+      "attributes": [
+        "member_no",
+        "section",
+        "material"
+      ],
+      "relations": [
+        "connected_to"
+      ]
     },
     {
       "code": "EMBEDDED_PART",
       "name_cn": "埋件",
       "discipline": "STRUCT",
       "parent_code": null,
-      "aliases": ["埋件", "预埋件", "embedded plate", "embed"],
-      "attributes": ["part_no", "plate_size", "anchor_type"],
-      "relations": ["embedded_in", "supports"]
+      "aliases": [
+        "埋件",
+        "预埋件",
+        "embedded plate",
+        "embed"
+      ],
+      "attributes": [
+        "part_no",
+        "plate_size",
+        "anchor_type"
+      ],
+      "relations": [
+        "embedded_in",
+        "supports"
+      ]
     },
     {
-      "code": "DUCT",
-      "name_cn": "风管",
-      "discipline": "HVAC",
+      "code": "EQUIPMENT_SUPPORT",
+      "name_cn": "设备支座",
+      "discipline": "STRUCT",
+      "parent_code": "SUPPORT_FRAME",
+      "aliases": [
+        "设备支座",
+        "equipment support"
+      ],
+      "attributes": [
+        "support_no",
+        "load",
+        "height",
+        "material"
+      ],
+      "relations": [
+        "supports",
+        "mounted_on"
+      ]
+    },
+    {
+      "code": "HANGER",
+      "name_cn": "吊杆",
+      "discipline": "STRUCT",
       "parent_code": null,
-      "aliases": ["风管", "duct", "air duct"],
-      "attributes": ["system", "size", "airflow", "material", "insulation", "elevation"],
-      "relations": ["connected_to", "serves_room", "passes_through"]
+      "aliases": [
+        "吊杆",
+        "hanger",
+        "吊架"
+      ],
+      "attributes": [
+        "hanger_type",
+        "diameter",
+        "spacing"
+      ],
+      "relations": [
+        "supports",
+        "mounted_on"
+      ]
     },
     {
-      "code": "SUPPLY_AIR_DUCT",
-      "name_cn": "送风管",
-      "discipline": "HVAC",
-      "parent_code": "DUCT",
-      "aliases": ["送风管", "SA", "supply air duct"],
-      "attributes": ["size", "airflow", "elevation"],
-      "relations": ["connected_to", "serves_room"]
-    },
-    {
-      "code": "RETURN_AIR_DUCT",
-      "name_cn": "回风管",
-      "discipline": "HVAC",
-      "parent_code": "DUCT",
-      "aliases": ["回风管", "RA", "return air duct"],
-      "attributes": ["size", "airflow", "elevation"],
-      "relations": ["connected_to", "serves_room"]
-    },
-    {
-      "code": "EXHAUST_AIR_DUCT",
-      "name_cn": "排风管",
-      "discipline": "HVAC",
-      "parent_code": "DUCT",
-      "aliases": ["排风管", "EA", "exhaust air duct"],
-      "attributes": ["size", "airflow", "elevation"],
-      "relations": ["connected_to", "serves_room"]
-    },
-    {
-      "code": "FRESH_AIR_DUCT",
-      "name_cn": "新风管",
-      "discipline": "HVAC",
-      "parent_code": "DUCT",
-      "aliases": ["新风管", "FA", "fresh air duct", "OA"],
-      "attributes": ["size", "airflow", "elevation"],
-      "relations": ["connected_to", "serves_room"]
-    },
-    {
-      "code": "AIR_DIFFUSER",
-      "name_cn": "风口",
-      "discipline": "HVAC",
+      "code": "PURLIN",
+      "name_cn": "檩条",
+      "discipline": "STRUCT",
       "parent_code": null,
-      "aliases": ["风口", "散流器", "diffuser", "grille"],
-      "attributes": ["tag", "type", "size", "airflow"],
-      "relations": ["connected_to", "serves_room", "mounted_on"]
+      "aliases": [
+        "檩条",
+        "purlin"
+      ],
+      "attributes": [
+        "member_no",
+        "section",
+        "material",
+        "spacing"
+      ],
+      "relations": [
+        "supported_by",
+        "supports",
+        "connected_to"
+      ]
     },
     {
-      "code": "AIR_DAMPER",
-      "name_cn": "风阀",
-      "discipline": "HVAC",
+      "code": "STEEL_BEAM",
+      "name_cn": "钢梁",
+      "discipline": "STRUCT",
       "parent_code": null,
-      "aliases": ["风阀", "调节阀", "damper", "VD"],
-      "attributes": ["tag", "type", "size", "normally_open"],
-      "relations": ["installed_on", "connected_to", "controlled_by"]
+      "aliases": [
+        "钢梁",
+        "beam",
+        "H型钢梁"
+      ],
+      "attributes": [
+        "member_no",
+        "section",
+        "material",
+        "elevation"
+      ],
+      "relations": [
+        "supported_by",
+        "supports",
+        "connected_to"
+      ]
     },
     {
-      "code": "FIRE_DAMPER",
-      "name_cn": "防火阀",
-      "discipline": "HVAC",
-      "parent_code": "AIR_DAMPER",
-      "aliases": ["防火阀", "FD", "fire damper"],
-      "attributes": ["tag", "fire_rating", "size", "temperature_rating"],
-      "relations": ["installed_on", "connected_to"]
-    },
-    {
-      "code": "FFU",
-      "name_cn": "风机过滤单元",
-      "discipline": "HVAC",
+      "code": "STEEL_COLUMN",
+      "name_cn": "钢柱",
+      "discipline": "STRUCT",
       "parent_code": null,
-      "aliases": ["FFU", "风机过滤单元", "fan filter unit"],
-      "attributes": ["tag", "size", "airflow", "filter_grade", "power"],
-      "relations": ["serves_room", "mounted_on", "connected_to", "powered_by"]
+      "aliases": [
+        "钢柱",
+        "column",
+        "H型钢柱",
+        "box column"
+      ],
+      "attributes": [
+        "member_no",
+        "section",
+        "material",
+        "elevation"
+      ],
+      "relations": [
+        "supports",
+        "located_on_axis"
+      ]
     },
     {
-      "code": "HEPA_FILTER",
-      "name_cn": "高效过滤器",
-      "discipline": "HVAC",
+      "code": "STEEL_PLATFORM",
+      "name_cn": "钢平台",
+      "discipline": "STRUCT",
       "parent_code": null,
-      "aliases": ["HEPA", "高效过滤器", "高效送风口", "filter"],
-      "attributes": ["tag", "size", "filter_grade", "airflow"],
-      "relations": ["serves_room", "mounted_on", "connected_to"]
+      "aliases": [
+        "钢平台",
+        "platform"
+      ],
+      "attributes": [
+        "platform_no",
+        "elevation",
+        "load",
+        "material"
+      ],
+      "relations": [
+        "supports",
+        "located_on_axis"
+      ]
+    },
+    {
+      "code": "SUPPORT_FRAME",
+      "name_cn": "支架",
+      "discipline": "STRUCT",
+      "parent_code": null,
+      "aliases": [
+        "支架",
+        "support frame",
+        "设备支架"
+      ],
+      "attributes": [
+        "support_no",
+        "section",
+        "material",
+        "load"
+      ],
+      "relations": [
+        "supports",
+        "mounted_on",
+        "connected_to"
+      ]
     },
     {
       "code": "AHU",
       "name_cn": "空调机组",
       "discipline": "HVAC",
       "parent_code": null,
-      "aliases": ["AHU", "空调机组", "air handling unit"],
-      "attributes": ["tag", "airflow", "cooling_capacity", "heating_capacity", "power"],
-      "relations": ["connected_to", "serves_system", "powered_by"]
+      "aliases": [
+        "AHU",
+        "空调机组",
+        "air handling unit"
+      ],
+      "attributes": [
+        "tag",
+        "airflow",
+        "cooling_capacity",
+        "heating_capacity",
+        "power"
+      ],
+      "relations": [
+        "connected_to",
+        "serves_system",
+        "powered_by"
+      ]
+    },
+    {
+      "code": "AIR_DAMPER",
+      "name_cn": "风阀",
+      "discipline": "HVAC",
+      "parent_code": null,
+      "aliases": [
+        "风阀",
+        "调节阀",
+        "damper",
+        "VD"
+      ],
+      "attributes": [
+        "tag",
+        "type",
+        "size",
+        "normally_open"
+      ],
+      "relations": [
+        "installed_on",
+        "connected_to",
+        "controlled_by"
+      ]
+    },
+    {
+      "code": "AIR_DIFFUSER",
+      "name_cn": "风口",
+      "discipline": "HVAC",
+      "parent_code": null,
+      "aliases": [
+        "风口",
+        "散流器",
+        "diffuser",
+        "grille"
+      ],
+      "attributes": [
+        "tag",
+        "type",
+        "size",
+        "airflow"
+      ],
+      "relations": [
+        "connected_to",
+        "serves_room",
+        "mounted_on"
+      ]
+    },
+    {
+      "code": "AIR_LOUVER",
+      "name_cn": "百叶风口",
+      "discipline": "HVAC",
+      "parent_code": "AIR_DIFFUSER",
+      "aliases": [
+        "百叶",
+        "百叶风口",
+        "louver"
+      ],
+      "attributes": [
+        "tag",
+        "size",
+        "free_area"
+      ],
+      "relations": [
+        "mounted_on",
+        "serves_room"
+      ]
+    },
+    {
+      "code": "AIR_VOLUME_DAMPER",
+      "name_cn": "风量调节阀",
+      "discipline": "HVAC",
+      "parent_code": "AIR_DAMPER",
+      "aliases": [
+        "风量阀",
+        "调节阀",
+        "volume damper",
+        "VD"
+      ],
+      "attributes": [
+        "tag",
+        "size",
+        "normally_open"
+      ],
+      "relations": [
+        "installed_on",
+        "controlled_by",
+        "connected_to"
+      ]
+    },
+    {
+      "code": "CAV_BOX",
+      "name_cn": "定风量箱",
+      "discipline": "HVAC",
+      "parent_code": null,
+      "aliases": [
+        "CAV",
+        "定风量箱",
+        "constant air volume box"
+      ],
+      "attributes": [
+        "tag",
+        "airflow",
+        "control_type"
+      ],
+      "relations": [
+        "connected_to",
+        "serves_room"
+      ]
+    },
+    {
+      "code": "DUCT",
+      "name_cn": "风管",
+      "discipline": "HVAC",
+      "parent_code": null,
+      "aliases": [
+        "风管",
+        "duct",
+        "air duct"
+      ],
+      "attributes": [
+        "system",
+        "size",
+        "airflow",
+        "material",
+        "insulation",
+        "elevation"
+      ],
+      "relations": [
+        "connected_to",
+        "serves_room",
+        "passes_through"
+      ]
+    },
+    {
+      "code": "DUCT_ACCESS_DOOR",
+      "name_cn": "风管检修门",
+      "discipline": "HVAC",
+      "parent_code": null,
+      "aliases": [
+        "风管检修门",
+        "duct access door"
+      ],
+      "attributes": [
+        "size",
+        "material"
+      ],
+      "relations": [
+        "installed_on"
+      ]
+    },
+    {
+      "code": "EXHAUST_AIR_DUCT",
+      "name_cn": "排风管",
+      "discipline": "HVAC",
+      "parent_code": "DUCT",
+      "aliases": [
+        "排风管",
+        "EA",
+        "exhaust air duct"
+      ],
+      "attributes": [
+        "size",
+        "airflow",
+        "elevation"
+      ],
+      "relations": [
+        "connected_to",
+        "serves_room"
+      ]
+    },
+    {
+      "code": "EXHAUST_FAN",
+      "name_cn": "排风机",
+      "discipline": "HVAC",
+      "parent_code": null,
+      "aliases": [
+        "排风机",
+        "exhaust fan",
+        "EF"
+      ],
+      "attributes": [
+        "tag",
+        "airflow",
+        "static_pressure",
+        "power"
+      ],
+      "relations": [
+        "connected_to",
+        "serves_system",
+        "powered_by"
+      ]
+    },
+    {
+      "code": "FFU",
+      "name_cn": "风机过滤单元",
+      "discipline": "HVAC",
+      "parent_code": null,
+      "aliases": [
+        "FFU",
+        "风机过滤单元",
+        "fan filter unit"
+      ],
+      "attributes": [
+        "tag",
+        "size",
+        "airflow",
+        "filter_grade",
+        "power"
+      ],
+      "relations": [
+        "serves_room",
+        "mounted_on",
+        "connected_to",
+        "powered_by"
+      ]
+    },
+    {
+      "code": "FIRE_DAMPER",
+      "name_cn": "防火阀",
+      "discipline": "HVAC",
+      "parent_code": "AIR_DAMPER",
+      "aliases": [
+        "防火阀",
+        "FD",
+        "fire damper"
+      ],
+      "attributes": [
+        "tag",
+        "fire_rating",
+        "size",
+        "temperature_rating"
+      ],
+      "relations": [
+        "installed_on",
+        "connected_to"
+      ]
+    },
+    {
+      "code": "FLEXIBLE_CONNECTOR",
+      "name_cn": "软接",
+      "discipline": "HVAC",
+      "parent_code": null,
+      "aliases": [
+        "软接",
+        "软连接",
+        "flexible connector"
+      ],
+      "attributes": [
+        "size",
+        "material",
+        "length"
+      ],
+      "relations": [
+        "connected_to",
+        "installed_on"
+      ]
+    },
+    {
+      "code": "FRESH_AIR_DUCT",
+      "name_cn": "新风管",
+      "discipline": "HVAC",
+      "parent_code": "DUCT",
+      "aliases": [
+        "新风管",
+        "FA",
+        "fresh air duct",
+        "OA"
+      ],
+      "attributes": [
+        "size",
+        "airflow",
+        "elevation"
+      ],
+      "relations": [
+        "connected_to",
+        "serves_room"
+      ]
+    },
+    {
+      "code": "HEPA_FILTER",
+      "name_cn": "高效过滤器",
+      "discipline": "HVAC",
+      "parent_code": null,
+      "aliases": [
+        "HEPA",
+        "高效过滤器",
+        "高效送风口",
+        "filter"
+      ],
+      "attributes": [
+        "tag",
+        "size",
+        "filter_grade",
+        "airflow"
+      ],
+      "relations": [
+        "serves_room",
+        "mounted_on",
+        "connected_to"
+      ]
     },
     {
       "code": "MAU",
       "name_cn": "新风机组",
       "discipline": "HVAC",
       "parent_code": "AHU",
-      "aliases": ["MAU", "新风机组", "make-up air unit"],
-      "attributes": ["tag", "airflow", "cooling_capacity", "power"],
-      "relations": ["connected_to", "serves_system", "powered_by"]
+      "aliases": [
+        "MAU",
+        "新风机组",
+        "make-up air unit"
+      ],
+      "attributes": [
+        "tag",
+        "airflow",
+        "cooling_capacity",
+        "power"
+      ],
+      "relations": [
+        "connected_to",
+        "serves_system",
+        "powered_by"
+      ]
     },
     {
-      "code": "SPRINKLER_HEAD",
-      "name_cn": "喷淋头",
-      "discipline": "FIRE",
-      "parent_code": null,
-      "aliases": ["喷淋头", "喷头", "sprinkler", "SP"],
-      "attributes": ["tag", "type", "temperature_rating", "coverage"],
-      "relations": ["connected_to", "located_in", "served_by"]
+      "code": "RETURN_AIR_DUCT",
+      "name_cn": "回风管",
+      "discipline": "HVAC",
+      "parent_code": "DUCT",
+      "aliases": [
+        "回风管",
+        "RA",
+        "return air duct"
+      ],
+      "attributes": [
+        "size",
+        "airflow",
+        "elevation"
+      ],
+      "relations": [
+        "connected_to",
+        "serves_room"
+      ]
     },
     {
-      "code": "FIRE_PIPE",
-      "name_cn": "消防管",
+      "code": "SILENCER",
+      "name_cn": "消声器",
+      "discipline": "HVAC",
+      "parent_code": null,
+      "aliases": [
+        "消声器",
+        "silencer",
+        "sound attenuator"
+      ],
+      "attributes": [
+        "tag",
+        "size",
+        "insertion_loss"
+      ],
+      "relations": [
+        "installed_on",
+        "connected_to"
+      ]
+    },
+    {
+      "code": "SMOKE_DAMPER",
+      "name_cn": "排烟阀",
+      "discipline": "HVAC",
+      "parent_code": "AIR_DAMPER",
+      "aliases": [
+        "排烟阀",
+        "smoke damper",
+        "SD"
+      ],
+      "attributes": [
+        "tag",
+        "size",
+        "fire_rating",
+        "normally_open"
+      ],
+      "relations": [
+        "installed_on",
+        "controlled_by",
+        "connected_to"
+      ]
+    },
+    {
+      "code": "SMOKE_EXHAUST_FAN",
+      "name_cn": "排烟风机",
+      "discipline": "HVAC",
+      "parent_code": "EXHAUST_FAN",
+      "aliases": [
+        "排烟风机",
+        "smoke exhaust fan",
+        "SEF"
+      ],
+      "attributes": [
+        "tag",
+        "airflow",
+        "fire_rating",
+        "power"
+      ],
+      "relations": [
+        "connected_to",
+        "serves_system",
+        "powered_by"
+      ]
+    },
+    {
+      "code": "SUPPLY_AIR_DUCT",
+      "name_cn": "送风管",
+      "discipline": "HVAC",
+      "parent_code": "DUCT",
+      "aliases": [
+        "送风管",
+        "SA",
+        "supply air duct"
+      ],
+      "attributes": [
+        "size",
+        "airflow",
+        "elevation"
+      ],
+      "relations": [
+        "connected_to",
+        "serves_room"
+      ]
+    },
+    {
+      "code": "SUPPLY_FAN",
+      "name_cn": "送风机",
+      "discipline": "HVAC",
+      "parent_code": null,
+      "aliases": [
+        "送风机",
+        "supply fan",
+        "SF"
+      ],
+      "attributes": [
+        "tag",
+        "airflow",
+        "static_pressure",
+        "power"
+      ],
+      "relations": [
+        "connected_to",
+        "serves_system",
+        "powered_by"
+      ]
+    },
+    {
+      "code": "VAV_BOX",
+      "name_cn": "变风量箱",
+      "discipline": "HVAC",
+      "parent_code": null,
+      "aliases": [
+        "VAV",
+        "变风量箱",
+        "variable air volume box"
+      ],
+      "attributes": [
+        "tag",
+        "airflow",
+        "control_type"
+      ],
+      "relations": [
+        "connected_to",
+        "serves_room",
+        "controlled_by"
+      ]
+    },
+    {
+      "code": "ALARM_VALVE_SET",
+      "name_cn": "报警阀组",
       "discipline": "FIRE",
       "parent_code": null,
-      "aliases": ["消防管", "喷淋管", "fire pipe", "sprinkler pipe"],
-      "attributes": ["system", "diameter", "material", "elevation"],
-      "relations": ["connected_to", "serves_room", "passes_through"]
+      "aliases": [
+        "报警阀组",
+        "湿式报警阀",
+        "alarm valve set"
+      ],
+      "attributes": [
+        "tag",
+        "diameter",
+        "system"
+      ],
+      "relations": [
+        "connected_to",
+        "serves_system"
+      ]
+    },
+    {
+      "code": "FIRE_ALARM_MODULE",
+      "name_cn": "火灾报警模块",
+      "discipline": "FIRE",
+      "parent_code": null,
+      "aliases": [
+        "模块",
+        "输入模块",
+        "输出模块",
+        "fire alarm module"
+      ],
+      "attributes": [
+        "tag",
+        "module_type",
+        "loop_no",
+        "address"
+      ],
+      "relations": [
+        "connected_to",
+        "reports_to",
+        "controls"
+      ]
+    },
+    {
+      "code": "FIRE_ALARM_PANEL",
+      "name_cn": "火灾报警控制器",
+      "discipline": "FIRE",
+      "parent_code": null,
+      "aliases": [
+        "火灾报警控制器",
+        "消防主机",
+        "FACP"
+      ],
+      "attributes": [
+        "tag",
+        "loop_count",
+        "manufacturer"
+      ],
+      "relations": [
+        "reports_to",
+        "controls",
+        "connected_to"
+      ]
+    },
+    {
+      "code": "FIRE_BROADCAST_SPEAKER",
+      "name_cn": "消防广播扬声器",
+      "discipline": "FIRE",
+      "parent_code": null,
+      "aliases": [
+        "消防广播",
+        "扬声器",
+        "fire speaker"
+      ],
+      "attributes": [
+        "tag",
+        "power",
+        "zone"
+      ],
+      "relations": [
+        "connected_to",
+        "located_in"
+      ]
     },
     {
       "code": "FIRE_HYDRANT",
       "name_cn": "消火栓",
       "discipline": "FIRE",
       "parent_code": null,
-      "aliases": ["消火栓", "hydrant", "fire hydrant"],
-      "attributes": ["tag", "type", "diameter"],
-      "relations": ["connected_to", "located_in"]
+      "aliases": [
+        "消火栓",
+        "hydrant",
+        "fire hydrant"
+      ],
+      "attributes": [
+        "tag",
+        "type",
+        "diameter"
+      ],
+      "relations": [
+        "connected_to",
+        "located_in"
+      ]
     },
     {
-      "code": "SMOKE_DETECTOR",
-      "name_cn": "烟感",
+      "code": "FIRE_PIPE",
+      "name_cn": "消防管",
       "discipline": "FIRE",
       "parent_code": null,
-      "aliases": ["烟感", "感烟探测器", "smoke detector", "SD"],
-      "attributes": ["tag", "loop_no", "address"],
-      "relations": ["located_in", "connected_to", "reports_to"]
+      "aliases": [
+        "消防管",
+        "喷淋管",
+        "fire pipe",
+        "sprinkler pipe"
+      ],
+      "attributes": [
+        "system",
+        "diameter",
+        "material",
+        "elevation"
+      ],
+      "relations": [
+        "connected_to",
+        "serves_room",
+        "passes_through"
+      ]
+    },
+    {
+      "code": "FIRE_PUMP",
+      "name_cn": "消防泵",
+      "discipline": "FIRE",
+      "parent_code": null,
+      "aliases": [
+        "消防泵",
+        "fire pump"
+      ],
+      "attributes": [
+        "tag",
+        "flow",
+        "head",
+        "power"
+      ],
+      "relations": [
+        "feeds",
+        "connected_to",
+        "powered_by"
+      ]
+    },
+    {
+      "code": "FIRE_TELEPHONE_JACK",
+      "name_cn": "消防电话插孔",
+      "discipline": "FIRE",
+      "parent_code": null,
+      "aliases": [
+        "消防电话",
+        "电话插孔",
+        "fire telephone jack"
+      ],
+      "attributes": [
+        "tag",
+        "zone"
+      ],
+      "relations": [
+        "connected_to",
+        "located_in"
+      ]
     },
     {
       "code": "HEAT_DETECTOR",
       "name_cn": "温感",
       "discipline": "FIRE",
       "parent_code": null,
-      "aliases": ["温感", "感温探测器", "heat detector", "HD"],
-      "attributes": ["tag", "loop_no", "address"],
-      "relations": ["located_in", "connected_to", "reports_to"]
+      "aliases": [
+        "温感",
+        "感温探测器",
+        "heat detector",
+        "HD"
+      ],
+      "attributes": [
+        "tag",
+        "loop_no",
+        "address"
+      ],
+      "relations": [
+        "located_in",
+        "connected_to",
+        "reports_to"
+      ]
     },
     {
       "code": "MANUAL_CALL_POINT",
       "name_cn": "手动报警按钮",
       "discipline": "FIRE",
       "parent_code": null,
-      "aliases": ["手报", "手动报警按钮", "manual call point", "MCP"],
-      "attributes": ["tag", "loop_no", "address"],
-      "relations": ["located_in", "connected_to", "reports_to"]
+      "aliases": [
+        "手报",
+        "手动报警按钮",
+        "manual call point",
+        "MCP"
+      ],
+      "attributes": [
+        "tag",
+        "loop_no",
+        "address"
+      ],
+      "relations": [
+        "located_in",
+        "connected_to",
+        "reports_to"
+      ]
+    },
+    {
+      "code": "SMOKE_DETECTOR",
+      "name_cn": "烟感",
+      "discipline": "FIRE",
+      "parent_code": null,
+      "aliases": [
+        "烟感",
+        "感烟探测器",
+        "smoke detector",
+        "SD"
+      ],
+      "attributes": [
+        "tag",
+        "loop_no",
+        "address"
+      ],
+      "relations": [
+        "located_in",
+        "connected_to",
+        "reports_to"
+      ]
     },
     {
       "code": "SOUNDER_STROBE",
       "name_cn": "声光报警器",
       "discipline": "FIRE",
       "parent_code": null,
-      "aliases": ["声光", "声光报警器", "sounder strobe"],
-      "attributes": ["tag", "loop_no", "address"],
-      "relations": ["located_in", "connected_to", "reports_to"]
+      "aliases": [
+        "声光",
+        "声光报警器",
+        "sounder strobe"
+      ],
+      "attributes": [
+        "tag",
+        "loop_no",
+        "address"
+      ],
+      "relations": [
+        "located_in",
+        "connected_to",
+        "reports_to"
+      ]
     },
     {
-      "code": "DISTRIBUTION_PANEL",
-      "name_cn": "配电箱",
-      "discipline": "ELEC",
+      "code": "SPRINKLER_HEAD",
+      "name_cn": "喷淋头",
+      "discipline": "FIRE",
       "parent_code": null,
-      "aliases": ["配电箱", "配电柜", "distribution panel", "DB", "PDB"],
-      "attributes": ["tag", "voltage", "capacity", "phase", "panel_type"],
-      "relations": ["feeds", "powered_by", "located_in"]
+      "aliases": [
+        "喷淋头",
+        "喷头",
+        "sprinkler",
+        "SP"
+      ],
+      "attributes": [
+        "tag",
+        "type",
+        "temperature_rating",
+        "coverage"
+      ],
+      "relations": [
+        "connected_to",
+        "located_in",
+        "served_by"
+      ]
     },
     {
-      "code": "CABLE_TRAY",
-      "name_cn": "桥架",
+      "code": "WATER_FLOW_SWITCH",
+      "name_cn": "水流指示器",
+      "discipline": "FIRE",
+      "parent_code": null,
+      "aliases": [
+        "水流指示器",
+        "water flow switch",
+        "WFS"
+      ],
+      "attributes": [
+        "tag",
+        "diameter",
+        "zone"
+      ],
+      "relations": [
+        "installed_on",
+        "reports_to"
+      ]
+    },
+    {
+      "code": "BUSDUCT",
+      "name_cn": "母线槽",
       "discipline": "ELEC",
       "parent_code": null,
-      "aliases": ["桥架", "线槽", "cable tray", "tray"],
-      "attributes": ["tray_type", "size", "elevation", "material"],
-      "relations": ["connected_to", "passes_through", "supports_cable"]
+      "aliases": [
+        "母线槽",
+        "busduct",
+        "busway"
+      ],
+      "attributes": [
+        "tag",
+        "current_rating",
+        "phase",
+        "material"
+      ],
+      "relations": [
+        "connected_to",
+        "feeds",
+        "passes_through"
+      ]
     },
     {
       "code": "CABLE",
       "name_cn": "电缆",
       "discipline": "ELEC",
       "parent_code": null,
-      "aliases": ["电缆", "cable", "wire"],
-      "attributes": ["cable_no", "spec", "from", "to", "length"],
-      "relations": ["connects", "routed_in"]
+      "aliases": [
+        "电缆",
+        "cable",
+        "wire"
+      ],
+      "attributes": [
+        "cable_no",
+        "spec",
+        "from",
+        "to",
+        "length"
+      ],
+      "relations": [
+        "connects",
+        "routed_in"
+      ]
     },
     {
-      "code": "LIGHT_FIXTURE",
-      "name_cn": "灯具",
+      "code": "CABLE_TRAY",
+      "name_cn": "桥架",
       "discipline": "ELEC",
       "parent_code": null,
-      "aliases": ["灯", "灯具", "照明", "light", "fixture"],
-      "attributes": ["tag", "type", "power", "mounting_type"],
-      "relations": ["located_in", "mounted_on", "powered_by"]
+      "aliases": [
+        "桥架",
+        "线槽",
+        "cable tray",
+        "tray"
+      ],
+      "attributes": [
+        "tray_type",
+        "size",
+        "elevation",
+        "material"
+      ],
+      "relations": [
+        "connected_to",
+        "passes_through",
+        "supports_cable"
+      ]
     },
     {
-      "code": "POWER_OUTLET",
-      "name_cn": "电源插座",
+      "code": "CABLE_TRENCH",
+      "name_cn": "电缆沟",
       "discipline": "ELEC",
       "parent_code": null,
-      "aliases": ["插座", "电源插座", "socket", "receptacle", "outlet"],
-      "attributes": ["tag", "voltage", "phase", "mounting_height"],
-      "relations": ["located_in", "powered_by"]
+      "aliases": [
+        "电缆沟",
+        "cable trench"
+      ],
+      "attributes": [
+        "width",
+        "depth",
+        "cover_type"
+      ],
+      "relations": [
+        "routed_in",
+        "supports_cable",
+        "passes_through"
+      ]
+    },
+    {
+      "code": "DISTRIBUTION_CABINET",
+      "name_cn": "配电柜",
+      "discipline": "ELEC",
+      "parent_code": "DISTRIBUTION_PANEL",
+      "aliases": [
+        "配电柜",
+        "低压柜",
+        "distribution cabinet",
+        "MCCB panel"
+      ],
+      "attributes": [
+        "tag",
+        "voltage",
+        "capacity",
+        "phase"
+      ],
+      "relations": [
+        "feeds",
+        "powered_by",
+        "located_in"
+      ]
+    },
+    {
+      "code": "DISTRIBUTION_PANEL",
+      "name_cn": "配电箱",
+      "discipline": "ELEC",
+      "parent_code": null,
+      "aliases": [
+        "配电箱",
+        "配电柜",
+        "distribution panel",
+        "DB",
+        "PDB"
+      ],
+      "attributes": [
+        "tag",
+        "voltage",
+        "capacity",
+        "phase",
+        "panel_type"
+      ],
+      "relations": [
+        "feeds",
+        "powered_by",
+        "located_in"
+      ]
+    },
+    {
+      "code": "EMERGENCY_LIGHT",
+      "name_cn": "应急照明灯",
+      "discipline": "ELEC",
+      "parent_code": "LIGHT_FIXTURE",
+      "aliases": [
+        "应急灯",
+        "emergency light"
+      ],
+      "attributes": [
+        "tag",
+        "power",
+        "battery_duration"
+      ],
+      "relations": [
+        "located_in",
+        "powered_by"
+      ]
+    },
+    {
+      "code": "EXIT_SIGN",
+      "name_cn": "疏散指示灯",
+      "discipline": "ELEC",
+      "parent_code": "LIGHT_FIXTURE",
+      "aliases": [
+        "疏散指示",
+        "出口指示",
+        "exit sign"
+      ],
+      "attributes": [
+        "tag",
+        "direction",
+        "power"
+      ],
+      "relations": [
+        "located_in",
+        "powered_by"
+      ]
+    },
+    {
+      "code": "GROUNDING_BUSBAR",
+      "name_cn": "接地母排",
+      "discipline": "ELEC",
+      "parent_code": "GROUNDING_POINT",
+      "aliases": [
+        "接地母排",
+        "grounding busbar",
+        "earth bar"
+      ],
+      "attributes": [
+        "tag",
+        "material",
+        "size"
+      ],
+      "relations": [
+        "connected_to",
+        "located_in"
+      ]
     },
     {
       "code": "GROUNDING_POINT",
       "name_cn": "接地点",
       "discipline": "ELEC",
       "parent_code": null,
-      "aliases": ["接地", "接地点", "grounding", "earth"],
-      "attributes": ["tag", "resistance", "purpose"],
-      "relations": ["connected_to", "located_in"]
+      "aliases": [
+        "接地",
+        "接地点",
+        "grounding",
+        "earth"
+      ],
+      "attributes": [
+        "tag",
+        "resistance",
+        "purpose"
+      ],
+      "relations": [
+        "connected_to",
+        "located_in"
+      ]
     },
     {
-      "code": "NETWORK_OUTLET",
-      "name_cn": "网络点",
+      "code": "LIGHTNING_DOWN_CONDUCTOR",
+      "name_cn": "防雷引下线",
+      "discipline": "ELEC",
+      "parent_code": "GROUNDING_POINT",
+      "aliases": [
+        "防雷引下线",
+        "down conductor"
+      ],
+      "attributes": [
+        "material",
+        "size",
+        "test_point"
+      ],
+      "relations": [
+        "connected_to",
+        "located_on_axis"
+      ]
+    },
+    {
+      "code": "LIGHT_FIXTURE",
+      "name_cn": "灯具",
+      "discipline": "ELEC",
+      "parent_code": null,
+      "aliases": [
+        "灯",
+        "灯具",
+        "照明",
+        "light",
+        "fixture"
+      ],
+      "attributes": [
+        "tag",
+        "type",
+        "power",
+        "mounting_type"
+      ],
+      "relations": [
+        "located_in",
+        "mounted_on",
+        "powered_by"
+      ]
+    },
+    {
+      "code": "POWER_OUTLET",
+      "name_cn": "电源插座",
+      "discipline": "ELEC",
+      "parent_code": null,
+      "aliases": [
+        "插座",
+        "电源插座",
+        "socket",
+        "receptacle",
+        "outlet"
+      ],
+      "attributes": [
+        "tag",
+        "voltage",
+        "phase",
+        "mounting_height"
+      ],
+      "relations": [
+        "located_in",
+        "powered_by"
+      ]
+    },
+    {
+      "code": "SWITCH",
+      "name_cn": "开关",
+      "discipline": "ELEC",
+      "parent_code": null,
+      "aliases": [
+        "开关",
+        "switch"
+      ],
+      "attributes": [
+        "tag",
+        "switch_type",
+        "gang",
+        "mounting_height"
+      ],
+      "relations": [
+        "controls",
+        "located_in"
+      ]
+    },
+    {
+      "code": "TRANSFORMER",
+      "name_cn": "变压器",
+      "discipline": "ELEC",
+      "parent_code": null,
+      "aliases": [
+        "变压器",
+        "transformer"
+      ],
+      "attributes": [
+        "tag",
+        "capacity",
+        "primary_voltage",
+        "secondary_voltage"
+      ],
+      "relations": [
+        "feeds",
+        "powered_by",
+        "located_in"
+      ]
+    },
+    {
+      "code": "UPS",
+      "name_cn": "不间断电源",
+      "discipline": "ELEC",
+      "parent_code": null,
+      "aliases": [
+        "UPS",
+        "不间断电源"
+      ],
+      "attributes": [
+        "tag",
+        "capacity",
+        "backup_time"
+      ],
+      "relations": [
+        "feeds",
+        "powered_by",
+        "located_in"
+      ]
+    },
+    {
+      "code": "ACCESS_CONTROLLER",
+      "name_cn": "门禁控制器",
       "discipline": "ELV",
       "parent_code": null,
-      "aliases": ["网络点", "信息点", "data outlet", "RJ45"],
-      "attributes": ["tag", "port_count", "mounting_height"],
-      "relations": ["located_in", "connected_to"]
+      "aliases": [
+        "门禁控制器",
+        "access controller"
+      ],
+      "attributes": [
+        "tag",
+        "door_count",
+        "protocol"
+      ],
+      "relations": [
+        "controls",
+        "connected_to",
+        "powered_by"
+      ]
     },
     {
       "code": "ACCESS_CONTROL_READER",
       "name_cn": "门禁读卡器",
       "discipline": "ELV",
       "parent_code": null,
-      "aliases": ["门禁", "读卡器", "access reader", "card reader"],
-      "attributes": ["tag", "door_no", "controller"],
-      "relations": ["controls", "installed_near", "connected_to"]
+      "aliases": [
+        "门禁",
+        "读卡器",
+        "access reader",
+        "card reader"
+      ],
+      "attributes": [
+        "tag",
+        "door_no",
+        "controller"
+      ],
+      "relations": [
+        "controls",
+        "installed_near",
+        "connected_to"
+      ]
     },
     {
       "code": "CCTV_CAMERA",
       "name_cn": "摄像机",
       "discipline": "ELV",
       "parent_code": null,
-      "aliases": ["摄像机", "监控", "camera", "CCTV"],
-      "attributes": ["tag", "camera_type", "coverage", "mounting_height"],
-      "relations": ["located_in", "connected_to"]
+      "aliases": [
+        "摄像机",
+        "监控",
+        "camera",
+        "CCTV"
+      ],
+      "attributes": [
+        "tag",
+        "camera_type",
+        "coverage",
+        "mounting_height"
+      ],
+      "relations": [
+        "located_in",
+        "connected_to"
+      ]
     },
     {
-      "code": "PIPE",
-      "name_cn": "管道",
-      "discipline": "PIPING",
+      "code": "DOOR_CONTACT",
+      "name_cn": "门磁",
+      "discipline": "ELV",
       "parent_code": null,
-      "aliases": ["管道", "pipe", "piping"],
-      "attributes": ["system", "diameter", "material", "elevation", "insulation"],
-      "relations": ["connected_to", "serves_equipment", "passes_through"]
+      "aliases": [
+        "门磁",
+        "door contact"
+      ],
+      "attributes": [
+        "tag",
+        "door_no",
+        "signal_type"
+      ],
+      "relations": [
+        "monitors",
+        "installed_in",
+        "connected_to"
+      ]
     },
     {
-      "code": "WATER_SUPPLY_PIPE",
-      "name_cn": "给水管",
-      "discipline": "PIPING",
-      "parent_code": "PIPE",
-      "aliases": ["给水管", "给水", "water supply", "WS"],
-      "attributes": ["diameter", "material", "elevation"],
-      "relations": ["connected_to", "serves_room"]
+      "code": "ELV_CABINET",
+      "name_cn": "弱电箱",
+      "discipline": "ELV",
+      "parent_code": null,
+      "aliases": [
+        "弱电箱",
+        "信息箱",
+        "ELV cabinet"
+      ],
+      "attributes": [
+        "tag",
+        "size",
+        "system"
+      ],
+      "relations": [
+        "contains",
+        "located_in",
+        "powered_by"
+      ]
     },
     {
-      "code": "DRAIN_PIPE",
-      "name_cn": "排水管",
-      "discipline": "PIPING",
-      "parent_code": "PIPE",
-      "aliases": ["排水管", "废水管", "drain", "DW", "WW"],
-      "attributes": ["diameter", "material", "slope", "elevation"],
-      "relations": ["connected_to", "serves_room"]
+      "code": "EXIT_BUTTON",
+      "name_cn": "出门按钮",
+      "discipline": "ELV",
+      "parent_code": null,
+      "aliases": [
+        "出门按钮",
+        "exit button",
+        "REX button"
+      ],
+      "attributes": [
+        "tag",
+        "door_no"
+      ],
+      "relations": [
+        "controls",
+        "installed_near",
+        "connected_to"
+      ]
+    },
+    {
+      "code": "NETWORK_OUTLET",
+      "name_cn": "网络点",
+      "discipline": "ELV",
+      "parent_code": null,
+      "aliases": [
+        "网络点",
+        "信息点",
+        "data outlet",
+        "RJ45"
+      ],
+      "attributes": [
+        "tag",
+        "port_count",
+        "mounting_height"
+      ],
+      "relations": [
+        "located_in",
+        "connected_to"
+      ]
+    },
+    {
+      "code": "NETWORK_SWITCH",
+      "name_cn": "网络交换机",
+      "discipline": "ELV",
+      "parent_code": null,
+      "aliases": [
+        "交换机",
+        "network switch",
+        "switch"
+      ],
+      "attributes": [
+        "tag",
+        "port_count",
+        "rack_no"
+      ],
+      "relations": [
+        "connected_to",
+        "mounted_in",
+        "powered_by"
+      ]
+    },
+    {
+      "code": "PA_SPEAKER",
+      "name_cn": "公共广播扬声器",
+      "discipline": "ELV",
+      "parent_code": null,
+      "aliases": [
+        "广播",
+        "扬声器",
+        "PA speaker"
+      ],
+      "attributes": [
+        "tag",
+        "power",
+        "zone"
+      ],
+      "relations": [
+        "connected_to",
+        "located_in"
+      ]
+    },
+    {
+      "code": "WIRELESS_AP",
+      "name_cn": "无线AP",
+      "discipline": "ELV",
+      "parent_code": "NETWORK_OUTLET",
+      "aliases": [
+        "AP",
+        "无线AP",
+        "wireless access point"
+      ],
+      "attributes": [
+        "tag",
+        "ssid",
+        "mounting_type"
+      ],
+      "relations": [
+        "connected_to",
+        "located_in",
+        "powered_by"
+      ]
     },
     {
       "code": "CHILLED_WATER_PIPE",
       "name_cn": "冷冻水管",
       "discipline": "PIPING",
       "parent_code": "PIPE",
-      "aliases": ["冷冻水", "CHW", "chilled water"],
-      "attributes": ["diameter", "material", "supply_return", "elevation"],
-      "relations": ["connected_to", "serves_equipment"]
+      "aliases": [
+        "冷冻水",
+        "CHW",
+        "chilled water"
+      ],
+      "attributes": [
+        "diameter",
+        "material",
+        "supply_return",
+        "elevation"
+      ],
+      "relations": [
+        "connected_to",
+        "serves_equipment"
+      ]
     },
     {
-      "code": "VALVE",
-      "name_cn": "阀门",
+      "code": "DRAIN_PIPE",
+      "name_cn": "排水管",
+      "discipline": "PIPING",
+      "parent_code": "PIPE",
+      "aliases": [
+        "排水管",
+        "废水管",
+        "drain",
+        "DW",
+        "WW"
+      ],
+      "attributes": [
+        "diameter",
+        "material",
+        "slope",
+        "elevation"
+      ],
+      "relations": [
+        "connected_to",
+        "serves_room"
+      ]
+    },
+    {
+      "code": "ELBOW",
+      "name_cn": "弯头",
+      "discipline": "PIPING",
+      "parent_code": "PIPE_FITTING",
+      "aliases": [
+        "弯头",
+        "elbow"
+      ],
+      "attributes": [
+        "angle",
+        "diameter",
+        "material"
+      ],
+      "relations": [
+        "connected_to"
+      ]
+    },
+    {
+      "code": "EXPANSION_JOINT",
+      "name_cn": "伸缩节",
       "discipline": "PIPING",
       "parent_code": null,
-      "aliases": ["阀", "阀门", "valve"],
-      "attributes": ["tag", "valve_type", "diameter", "normally_open"],
-      "relations": ["installed_on", "connected_to"]
+      "aliases": [
+        "伸缩节",
+        "补偿器",
+        "expansion joint"
+      ],
+      "attributes": [
+        "diameter",
+        "movement",
+        "material"
+      ],
+      "relations": [
+        "installed_on",
+        "connected_to"
+      ]
+    },
+    {
+      "code": "FILTER",
+      "name_cn": "过滤器",
+      "discipline": "PIPING",
+      "parent_code": null,
+      "aliases": [
+        "过滤器",
+        "filter",
+        "strainer"
+      ],
+      "attributes": [
+        "tag",
+        "diameter",
+        "filter_grade"
+      ],
+      "relations": [
+        "installed_on",
+        "connected_to"
+      ]
+    },
+    {
+      "code": "FLANGE",
+      "name_cn": "法兰",
+      "discipline": "PIPING",
+      "parent_code": "PIPE_FITTING",
+      "aliases": [
+        "法兰",
+        "flange"
+      ],
+      "attributes": [
+        "diameter",
+        "rating",
+        "material"
+      ],
+      "relations": [
+        "connected_to",
+        "installed_on"
+      ]
     },
     {
       "code": "FLOOR_DRAIN",
       "name_cn": "地漏",
       "discipline": "PIPING",
       "parent_code": null,
-      "aliases": ["地漏", "floor drain", "FD"],
-      "attributes": ["tag", "diameter", "trap_type"],
-      "relations": ["located_in", "connected_to"]
+      "aliases": [
+        "地漏",
+        "floor drain",
+        "FD"
+      ],
+      "attributes": [
+        "tag",
+        "diameter",
+        "trap_type"
+      ],
+      "relations": [
+        "located_in",
+        "connected_to"
+      ]
     },
     {
-      "code": "GAS_PIPE",
-      "name_cn": "气体管道",
-      "discipline": "GAS",
+      "code": "FLOW_METER",
+      "name_cn": "流量计",
+      "discipline": "PIPING",
+      "parent_code": null,
+      "aliases": [
+        "流量计",
+        "flow meter",
+        "FM"
+      ],
+      "attributes": [
+        "tag",
+        "range",
+        "signal_type"
+      ],
+      "relations": [
+        "installed_on",
+        "monitors",
+        "connected_to"
+      ]
+    },
+    {
+      "code": "PIPE",
+      "name_cn": "管道",
+      "discipline": "PIPING",
+      "parent_code": null,
+      "aliases": [
+        "管道",
+        "pipe",
+        "piping"
+      ],
+      "attributes": [
+        "system",
+        "diameter",
+        "material",
+        "elevation",
+        "insulation"
+      ],
+      "relations": [
+        "connected_to",
+        "serves_equipment",
+        "passes_through"
+      ]
+    },
+    {
+      "code": "PIPE_FITTING",
+      "name_cn": "管件",
+      "discipline": "PIPING",
+      "parent_code": null,
+      "aliases": [
+        "管件",
+        "fitting"
+      ],
+      "attributes": [
+        "fitting_type",
+        "diameter",
+        "material"
+      ],
+      "relations": [
+        "connected_to",
+        "installed_on"
+      ]
+    },
+    {
+      "code": "PIPE_SUPPORT",
+      "name_cn": "管道支吊架",
+      "discipline": "PIPING",
+      "parent_code": "HANGER",
+      "aliases": [
+        "管道支架",
+        "管道吊架",
+        "pipe support"
+      ],
+      "attributes": [
+        "support_type",
+        "spacing",
+        "material"
+      ],
+      "relations": [
+        "supports",
+        "mounted_on"
+      ]
+    },
+    {
+      "code": "PRESSURE_GAUGE",
+      "name_cn": "压力表",
+      "discipline": "PIPING",
+      "parent_code": null,
+      "aliases": [
+        "压力表",
+        "pressure gauge",
+        "PG"
+      ],
+      "attributes": [
+        "tag",
+        "range",
+        "unit"
+      ],
+      "relations": [
+        "installed_on",
+        "monitors"
+      ]
+    },
+    {
+      "code": "PUMP",
+      "name_cn": "泵",
+      "discipline": "PIPING",
+      "parent_code": null,
+      "aliases": [
+        "泵",
+        "pump"
+      ],
+      "attributes": [
+        "tag",
+        "flow",
+        "head",
+        "power"
+      ],
+      "relations": [
+        "connected_to",
+        "serves_system",
+        "powered_by"
+      ]
+    },
+    {
+      "code": "TEE",
+      "name_cn": "三通",
+      "discipline": "PIPING",
+      "parent_code": "PIPE_FITTING",
+      "aliases": [
+        "三通",
+        "tee"
+      ],
+      "attributes": [
+        "diameter",
+        "branch_diameter",
+        "material"
+      ],
+      "relations": [
+        "connected_to"
+      ]
+    },
+    {
+      "code": "VALVE",
+      "name_cn": "阀门",
+      "discipline": "PIPING",
+      "parent_code": null,
+      "aliases": [
+        "阀",
+        "阀门",
+        "valve"
+      ],
+      "attributes": [
+        "tag",
+        "valve_type",
+        "diameter",
+        "normally_open"
+      ],
+      "relations": [
+        "installed_on",
+        "connected_to"
+      ]
+    },
+    {
+      "code": "WATER_SUPPLY_PIPE",
+      "name_cn": "给水管",
+      "discipline": "PIPING",
       "parent_code": "PIPE",
-      "aliases": ["气体管", "特气管", "gas pipe", "special gas"],
-      "attributes": ["gas_type", "diameter", "material", "pressure", "elevation"],
-      "relations": ["connected_to", "serves_equipment", "passes_through"]
+      "aliases": [
+        "给水管",
+        "给水",
+        "water supply",
+        "WS"
+      ],
+      "attributes": [
+        "diameter",
+        "material",
+        "elevation"
+      ],
+      "relations": [
+        "connected_to",
+        "serves_room"
+      ]
     },
     {
       "code": "COMPRESSED_AIR_PIPE",
       "name_cn": "压缩空气管",
       "discipline": "GAS",
       "parent_code": "GAS_PIPE",
-      "aliases": ["压缩空气", "CDA", "compressed air"],
-      "attributes": ["diameter", "pressure", "material", "elevation"],
-      "relations": ["connected_to", "serves_equipment"]
-    },
-    {
-      "code": "NITROGEN_PIPE",
-      "name_cn": "氮气管",
-      "discipline": "GAS",
-      "parent_code": "GAS_PIPE",
-      "aliases": ["氮气", "N2", "nitrogen"],
-      "attributes": ["diameter", "pressure", "material", "elevation"],
-      "relations": ["connected_to", "serves_equipment"]
-    },
-    {
-      "code": "VACUUM_PIPE",
-      "name_cn": "真空管",
-      "discipline": "GAS",
-      "parent_code": "GAS_PIPE",
-      "aliases": ["真空", "VAC", "vacuum"],
-      "attributes": ["diameter", "vacuum_level", "material", "elevation"],
-      "relations": ["connected_to", "serves_equipment"]
+      "aliases": [
+        "压缩空气",
+        "CDA",
+        "compressed air"
+      ],
+      "attributes": [
+        "diameter",
+        "pressure",
+        "material",
+        "elevation"
+      ],
+      "relations": [
+        "connected_to",
+        "serves_equipment"
+      ]
     },
     {
       "code": "GAS_CABINET",
       "name_cn": "气瓶柜",
       "discipline": "GAS",
       "parent_code": null,
-      "aliases": ["气瓶柜", "气体柜", "gas cabinet", "GC"],
-      "attributes": ["tag", "gas_type", "capacity", "pressure"],
-      "relations": ["feeds", "located_in", "connected_to"]
+      "aliases": [
+        "气瓶柜",
+        "气体柜",
+        "gas cabinet",
+        "GC"
+      ],
+      "attributes": [
+        "tag",
+        "gas_type",
+        "capacity",
+        "pressure"
+      ],
+      "relations": [
+        "feeds",
+        "located_in",
+        "connected_to"
+      ]
+    },
+    {
+      "code": "GAS_DETECTOR",
+      "name_cn": "气体探测器",
+      "discipline": "GAS",
+      "parent_code": null,
+      "aliases": [
+        "气体探测器",
+        "gas detector"
+      ],
+      "attributes": [
+        "tag",
+        "gas_type",
+        "range",
+        "alarm_level"
+      ],
+      "relations": [
+        "monitors",
+        "located_in",
+        "connected_to"
+      ]
+    },
+    {
+      "code": "GAS_EXHAUST_PIPE",
+      "name_cn": "气体排风管",
+      "discipline": "GAS",
+      "parent_code": "GAS_PIPE",
+      "aliases": [
+        "气体排风",
+        "排气管",
+        "gas exhaust pipe"
+      ],
+      "attributes": [
+        "gas_type",
+        "diameter",
+        "material",
+        "elevation"
+      ],
+      "relations": [
+        "connected_to",
+        "passes_through"
+      ]
+    },
+    {
+      "code": "GAS_PANEL",
+      "name_cn": "气体调压面板",
+      "discipline": "GAS",
+      "parent_code": null,
+      "aliases": [
+        "气体面板",
+        "调压面板",
+        "gas panel"
+      ],
+      "attributes": [
+        "tag",
+        "gas_type",
+        "inlet_count",
+        "outlet_count"
+      ],
+      "relations": [
+        "connected_to",
+        "feeds",
+        "located_in"
+      ]
+    },
+    {
+      "code": "GAS_PIPE",
+      "name_cn": "气体管道",
+      "discipline": "GAS",
+      "parent_code": "PIPE",
+      "aliases": [
+        "气体管",
+        "特气管",
+        "gas pipe",
+        "special gas"
+      ],
+      "attributes": [
+        "gas_type",
+        "diameter",
+        "material",
+        "pressure",
+        "elevation"
+      ],
+      "relations": [
+        "connected_to",
+        "serves_equipment",
+        "passes_through"
+      ]
+    },
+    {
+      "code": "GAS_PRESSURE_GAUGE",
+      "name_cn": "气体压力表",
+      "discipline": "GAS",
+      "parent_code": "PRESSURE_GAUGE",
+      "aliases": [
+        "气体压力表",
+        "pressure gauge",
+        "PG"
+      ],
+      "attributes": [
+        "tag",
+        "range",
+        "gas_type"
+      ],
+      "relations": [
+        "installed_on",
+        "monitors"
+      ]
+    },
+    {
+      "code": "NITROGEN_PIPE",
+      "name_cn": "氮气管",
+      "discipline": "GAS",
+      "parent_code": "GAS_PIPE",
+      "aliases": [
+        "氮气",
+        "N2",
+        "nitrogen"
+      ],
+      "attributes": [
+        "diameter",
+        "pressure",
+        "material",
+        "elevation"
+      ],
+      "relations": [
+        "connected_to",
+        "serves_equipment"
+      ]
+    },
+    {
+      "code": "PRESSURE_REGULATOR",
+      "name_cn": "减压阀",
+      "discipline": "GAS",
+      "parent_code": "VALVE",
+      "aliases": [
+        "减压阀",
+        "调压阀",
+        "pressure regulator"
+      ],
+      "attributes": [
+        "tag",
+        "inlet_pressure",
+        "outlet_pressure",
+        "gas_type"
+      ],
+      "relations": [
+        "installed_on",
+        "connected_to"
+      ]
+    },
+    {
+      "code": "PURGE_POINT",
+      "name_cn": "吹扫点",
+      "discipline": "GAS",
+      "parent_code": null,
+      "aliases": [
+        "吹扫点",
+        "purge point"
+      ],
+      "attributes": [
+        "tag",
+        "gas_type",
+        "connection_size"
+      ],
+      "relations": [
+        "installed_on",
+        "connected_to"
+      ]
+    },
+    {
+      "code": "VACUUM_PIPE",
+      "name_cn": "真空管",
+      "discipline": "GAS",
+      "parent_code": "GAS_PIPE",
+      "aliases": [
+        "真空",
+        "VAC",
+        "vacuum"
+      ],
+      "attributes": [
+        "diameter",
+        "vacuum_level",
+        "material",
+        "elevation"
+      ],
+      "relations": [
+        "connected_to",
+        "serves_equipment"
+      ]
     },
     {
       "code": "VMB",
       "name_cn": "阀门箱",
       "discipline": "GAS",
       "parent_code": null,
-      "aliases": ["阀门箱", "VMB", "valve manifold box"],
-      "attributes": ["tag", "gas_type", "inlet_count", "outlet_count"],
-      "relations": ["connected_to", "feeds", "located_in"]
-    },
-    {
-      "code": "CONTROL_PANEL",
-      "name_cn": "控制柜",
-      "discipline": "BMS",
-      "parent_code": null,
-      "aliases": ["控制柜", "控制箱", "control panel", "CP"],
-      "attributes": ["tag", "system", "voltage", "controller_type"],
-      "relations": ["controls", "powered_by", "located_in"]
-    },
-    {
-      "code": "DDC",
-      "name_cn": "直接数字控制器",
-      "discipline": "BMS",
-      "parent_code": "CONTROL_PANEL",
-      "aliases": ["DDC", "直接数字控制器"],
-      "attributes": ["tag", "io_count", "protocol", "panel_no"],
-      "relations": ["controls", "connected_to", "mounted_in"]
-    },
-    {
-      "code": "TEMPERATURE_SENSOR",
-      "name_cn": "温度传感器",
-      "discipline": "BMS",
-      "parent_code": null,
-      "aliases": ["温度传感器", "温感器", "temperature sensor", "TS"],
-      "attributes": ["tag", "range", "signal_type"],
-      "relations": ["monitors", "located_in", "connected_to"]
-    },
-    {
-      "code": "HUMIDITY_SENSOR",
-      "name_cn": "湿度传感器",
-      "discipline": "BMS",
-      "parent_code": null,
-      "aliases": ["湿度传感器", "humidity sensor", "HS"],
-      "attributes": ["tag", "range", "signal_type"],
-      "relations": ["monitors", "located_in", "connected_to"]
-    },
-    {
-      "code": "DIFFERENTIAL_PRESSURE_SENSOR",
-      "name_cn": "压差传感器",
-      "discipline": "BMS",
-      "parent_code": null,
-      "aliases": ["压差", "压差表", "压差传感器", "differential pressure", "DPS"],
-      "attributes": ["tag", "range", "signal_type"],
-      "relations": ["monitors", "located_in", "connected_to"]
+      "aliases": [
+        "阀门箱",
+        "VMB",
+        "valve manifold box"
+      ],
+      "attributes": [
+        "tag",
+        "gas_type",
+        "inlet_count",
+        "outlet_count"
+      ],
+      "relations": [
+        "connected_to",
+        "feeds",
+        "located_in"
+      ]
     },
     {
       "code": "ACTUATOR",
       "name_cn": "执行器",
       "discipline": "BMS",
       "parent_code": null,
-      "aliases": ["执行器", "actuator"],
-      "attributes": ["tag", "actuator_type", "signal_type"],
-      "relations": ["controls", "mounted_on", "connected_to"]
+      "aliases": [
+        "执行器",
+        "actuator"
+      ],
+      "attributes": [
+        "tag",
+        "actuator_type",
+        "signal_type"
+      ],
+      "relations": [
+        "controls",
+        "mounted_on",
+        "connected_to"
+      ]
     },
     {
-      "code": "PROCESS_EQUIPMENT",
-      "name_cn": "工艺设备",
-      "discipline": "EQUIPMENT",
+      "code": "BMS_GATEWAY",
+      "name_cn": "楼控网关",
+      "discipline": "BMS",
       "parent_code": null,
-      "aliases": ["工艺设备", "设备", "process equipment", "equipment"],
-      "attributes": ["tag", "equipment_name", "model", "vendor", "power", "utility_requirements"],
-      "relations": ["located_in", "connected_to", "powered_by", "served_by"]
+      "aliases": [
+        "网关",
+        "BMS gateway",
+        "协议网关"
+      ],
+      "attributes": [
+        "tag",
+        "protocol",
+        "port_count"
+      ],
+      "relations": [
+        "connected_to",
+        "reports_to",
+        "mounted_in"
+      ]
     },
     {
-      "code": "CLEAN_BENCH",
-      "name_cn": "洁净工作台",
-      "discipline": "EQUIPMENT",
-      "parent_code": "PROCESS_EQUIPMENT",
-      "aliases": ["洁净工作台", "clean bench", "超净台"],
-      "attributes": ["tag", "size", "cleanliness_class", "power"],
-      "relations": ["located_in", "powered_by"]
+      "code": "CONTROL_PANEL",
+      "name_cn": "控制柜",
+      "discipline": "BMS",
+      "parent_code": null,
+      "aliases": [
+        "控制柜",
+        "控制箱",
+        "control panel",
+        "CP"
+      ],
+      "attributes": [
+        "tag",
+        "system",
+        "voltage",
+        "controller_type"
+      ],
+      "relations": [
+        "controls",
+        "powered_by",
+        "located_in"
+      ]
     },
     {
-      "code": "PASS_BOX",
-      "name_cn": "传递窗",
-      "discipline": "EQUIPMENT",
-      "parent_code": "PROCESS_EQUIPMENT",
-      "aliases": ["传递窗", "pass box", "pass-through box"],
-      "attributes": ["tag", "size", "interlock", "uv"],
-      "relations": ["installed_in", "connects_room", "powered_by"]
+      "code": "CONTROL_VALVE",
+      "name_cn": "控制阀",
+      "discipline": "BMS",
+      "parent_code": "ACTUATOR",
+      "aliases": [
+        "控制阀",
+        "control valve"
+      ],
+      "attributes": [
+        "tag",
+        "valve_type",
+        "signal_type",
+        "diameter"
+      ],
+      "relations": [
+        "controls",
+        "installed_on",
+        "connected_to"
+      ]
+    },
+    {
+      "code": "DDC",
+      "name_cn": "直接数字控制器",
+      "discipline": "BMS",
+      "parent_code": "CONTROL_PANEL",
+      "aliases": [
+        "DDC",
+        "直接数字控制器"
+      ],
+      "attributes": [
+        "tag",
+        "io_count",
+        "protocol",
+        "panel_no"
+      ],
+      "relations": [
+        "controls",
+        "connected_to",
+        "mounted_in"
+      ]
+    },
+    {
+      "code": "DIFFERENTIAL_PRESSURE_SENSOR",
+      "name_cn": "压差传感器",
+      "discipline": "BMS",
+      "parent_code": null,
+      "aliases": [
+        "压差",
+        "压差表",
+        "压差传感器",
+        "differential pressure",
+        "DPS"
+      ],
+      "attributes": [
+        "tag",
+        "range",
+        "signal_type"
+      ],
+      "relations": [
+        "monitors",
+        "located_in",
+        "connected_to"
+      ]
+    },
+    {
+      "code": "FLOW_SENSOR",
+      "name_cn": "流量传感器",
+      "discipline": "BMS",
+      "parent_code": null,
+      "aliases": [
+        "流量传感器",
+        "flow sensor",
+        "FS"
+      ],
+      "attributes": [
+        "tag",
+        "range",
+        "signal_type"
+      ],
+      "relations": [
+        "monitors",
+        "installed_on",
+        "connected_to"
+      ]
+    },
+    {
+      "code": "HUMIDITY_SENSOR",
+      "name_cn": "湿度传感器",
+      "discipline": "BMS",
+      "parent_code": null,
+      "aliases": [
+        "湿度传感器",
+        "humidity sensor",
+        "HS"
+      ],
+      "attributes": [
+        "tag",
+        "range",
+        "signal_type"
+      ],
+      "relations": [
+        "monitors",
+        "located_in",
+        "connected_to"
+      ]
+    },
+    {
+      "code": "IO_MODULE",
+      "name_cn": "I/O模块",
+      "discipline": "BMS",
+      "parent_code": "PLC",
+      "aliases": [
+        "I/O模块",
+        "IO module",
+        "DI模块",
+        "DO模块",
+        "AI模块",
+        "AO模块"
+      ],
+      "attributes": [
+        "tag",
+        "io_type",
+        "channel_count",
+        "protocol"
+      ],
+      "relations": [
+        "connected_to",
+        "mounted_in"
+      ]
+    },
+    {
+      "code": "LEVEL_SENSOR",
+      "name_cn": "液位传感器",
+      "discipline": "BMS",
+      "parent_code": null,
+      "aliases": [
+        "液位传感器",
+        "level sensor",
+        "LS"
+      ],
+      "attributes": [
+        "tag",
+        "range",
+        "signal_type"
+      ],
+      "relations": [
+        "monitors",
+        "installed_on",
+        "connected_to"
+      ]
+    },
+    {
+      "code": "PLC",
+      "name_cn": "可编程控制器",
+      "discipline": "BMS",
+      "parent_code": "CONTROL_PANEL",
+      "aliases": [
+        "PLC",
+        "可编程控制器"
+      ],
+      "attributes": [
+        "tag",
+        "vendor",
+        "model",
+        "protocol"
+      ],
+      "relations": [
+        "controls",
+        "connected_to",
+        "mounted_in"
+      ]
+    },
+    {
+      "code": "PRESSURE_SENSOR",
+      "name_cn": "压力传感器",
+      "discipline": "BMS",
+      "parent_code": null,
+      "aliases": [
+        "压力传感器",
+        "pressure sensor",
+        "PS"
+      ],
+      "attributes": [
+        "tag",
+        "range",
+        "signal_type"
+      ],
+      "relations": [
+        "monitors",
+        "installed_on",
+        "connected_to"
+      ]
+    },
+    {
+      "code": "TEMPERATURE_SENSOR",
+      "name_cn": "温度传感器",
+      "discipline": "BMS",
+      "parent_code": null,
+      "aliases": [
+        "温度传感器",
+        "温感器",
+        "temperature sensor",
+        "TS"
+      ],
+      "attributes": [
+        "tag",
+        "range",
+        "signal_type"
+      ],
+      "relations": [
+        "monitors",
+        "located_in",
+        "connected_to"
+      ]
+    },
+    {
+      "code": "VFD",
+      "name_cn": "变频器",
+      "discipline": "BMS",
+      "parent_code": "CONTROL_PANEL",
+      "aliases": [
+        "变频器",
+        "VFD",
+        "inverter"
+      ],
+      "attributes": [
+        "tag",
+        "power",
+        "controlled_equipment"
+      ],
+      "relations": [
+        "controls",
+        "powered_by",
+        "mounted_in"
+      ]
     },
     {
       "code": "AIR_SHOWER",
       "name_cn": "风淋室",
       "discipline": "EQUIPMENT",
       "parent_code": "PROCESS_EQUIPMENT",
-      "aliases": ["风淋室", "air shower"],
-      "attributes": ["tag", "size", "door_count", "power"],
-      "relations": ["connects_room", "located_in", "powered_by"]
+      "aliases": [
+        "风淋室",
+        "air shower"
+      ],
+      "attributes": [
+        "tag",
+        "size",
+        "door_count",
+        "power"
+      ],
+      "relations": [
+        "connects_room",
+        "located_in",
+        "powered_by"
+      ]
+    },
+    {
+      "code": "CARGO_AIR_SHOWER",
+      "name_cn": "货淋室",
+      "discipline": "EQUIPMENT",
+      "parent_code": "AIR_SHOWER",
+      "aliases": [
+        "货淋室",
+        "cargo air shower"
+      ],
+      "attributes": [
+        "tag",
+        "size",
+        "door_count",
+        "power"
+      ],
+      "relations": [
+        "connects_room",
+        "located_in",
+        "powered_by"
+      ]
+    },
+    {
+      "code": "CLEAN_BENCH",
+      "name_cn": "洁净工作台",
+      "discipline": "EQUIPMENT",
+      "parent_code": "PROCESS_EQUIPMENT",
+      "aliases": [
+        "洁净工作台",
+        "clean bench",
+        "超净台"
+      ],
+      "attributes": [
+        "tag",
+        "size",
+        "cleanliness_class",
+        "power"
+      ],
+      "relations": [
+        "located_in",
+        "powered_by"
+      ]
+    },
+    {
+      "code": "CLEAN_BOOTH",
+      "name_cn": "洁净棚",
+      "discipline": "EQUIPMENT",
+      "parent_code": "PROCESS_EQUIPMENT",
+      "aliases": [
+        "洁净棚",
+        "clean booth"
+      ],
+      "attributes": [
+        "tag",
+        "size",
+        "cleanliness_class",
+        "airflow"
+      ],
+      "relations": [
+        "located_in",
+        "powered_by",
+        "served_by"
+      ]
     },
     {
       "code": "EQUIPMENT_FOUNDATION",
       "name_cn": "设备基础",
       "discipline": "EQUIPMENT",
       "parent_code": null,
-      "aliases": ["设备基础", "foundation", "base"],
-      "attributes": ["foundation_no", "size", "height", "load"],
-      "relations": ["supports", "located_on_axis"]
+      "aliases": [
+        "设备基础",
+        "foundation",
+        "base"
+      ],
+      "attributes": [
+        "foundation_no",
+        "size",
+        "height",
+        "load"
+      ],
+      "relations": [
+        "supports",
+        "located_on_axis"
+      ]
+    },
+    {
+      "code": "EQUIPMENT_NOZZLE",
+      "name_cn": "设备接口",
+      "discipline": "EQUIPMENT",
+      "parent_code": null,
+      "aliases": [
+        "设备接口",
+        "nozzle",
+        "connection point"
+      ],
+      "attributes": [
+        "tag",
+        "connection_type",
+        "size",
+        "service"
+      ],
+      "relations": [
+        "connected_to",
+        "serves_equipment"
+      ]
+    },
+    {
+      "code": "PASS_BOX",
+      "name_cn": "传递窗",
+      "discipline": "EQUIPMENT",
+      "parent_code": "PROCESS_EQUIPMENT",
+      "aliases": [
+        "传递窗",
+        "pass box",
+        "pass-through box"
+      ],
+      "attributes": [
+        "tag",
+        "size",
+        "interlock",
+        "uv"
+      ],
+      "relations": [
+        "installed_in",
+        "connects_room",
+        "powered_by"
+      ]
+    },
+    {
+      "code": "PROCESS_EQUIPMENT",
+      "name_cn": "工艺设备",
+      "discipline": "EQUIPMENT",
+      "parent_code": null,
+      "aliases": [
+        "工艺设备",
+        "设备",
+        "process equipment",
+        "equipment"
+      ],
+      "attributes": [
+        "tag",
+        "equipment_name",
+        "model",
+        "vendor",
+        "power",
+        "utility_requirements"
+      ],
+      "relations": [
+        "located_in",
+        "connected_to",
+        "powered_by",
+        "served_by"
+      ]
+    },
+    {
+      "code": "PROCESS_TOOL",
+      "name_cn": "工艺机台",
+      "discipline": "EQUIPMENT",
+      "parent_code": "PROCESS_EQUIPMENT",
+      "aliases": [
+        "机台",
+        "工艺机台",
+        "process tool"
+      ],
+      "attributes": [
+        "tag",
+        "equipment_name",
+        "model",
+        "vendor",
+        "utility_requirements"
+      ],
+      "relations": [
+        "located_in",
+        "connected_to",
+        "powered_by",
+        "served_by"
+      ]
+    },
+    {
+      "code": "UTILITY_POINT",
+      "name_cn": "设备公用工程接口点",
+      "discipline": "EQUIPMENT",
+      "parent_code": null,
+      "aliases": [
+        "公用工程点",
+        "utility point",
+        "设备接口点"
+      ],
+      "attributes": [
+        "tag",
+        "utility_type",
+        "size",
+        "pressure",
+        "flow"
+      ],
+      "relations": [
+        "serves_equipment",
+        "connected_to",
+        "located_in"
+      ]
+    },
+    {
+      "code": "WORKSTATION",
+      "name_cn": "操作工位",
+      "discipline": "EQUIPMENT",
+      "parent_code": null,
+      "aliases": [
+        "工位",
+        "操作台",
+        "workstation"
+      ],
+      "attributes": [
+        "tag",
+        "station_type",
+        "operator_count"
+      ],
+      "relations": [
+        "located_in",
+        "served_by"
+      ]
     }
   ],
   "relation_types": [
     "contains",
     "located_in",
     "belongs_to",
+    "belongs_to_project",
+    "belongs_to_room",
     "connected_to",
+    "connects",
+    "connects_room",
+    "connects_level",
+    "passes_through",
+    "routed_in",
     "serves_room",
     "serves_system",
+    "serves_equipment",
     "served_by",
+    "feeds",
     "mounted_on",
     "mounted_in",
     "installed_on",
     "installed_in",
+    "installed_near",
+    "embedded_in",
     "powered_by",
-    "feeds",
     "controls",
     "controlled_by",
     "monitors",
     "reports_to",
-    "passes_through",
-    "bounds_room",
-    "connects_room",
     "supports",
     "supported_by",
+    "supports_cable",
+    "bounds_room",
+    "has_opening",
+    "covers_room",
+    "adjacent_to",
     "labels",
     "labels_room",
-    "located_on_axis"
+    "defines_symbol",
+    "measures",
+    "points_to",
+    "penetrates",
+    "reserved_for",
+    "locates_object",
+    "located_on_axis",
+    "references_detail",
+    "references_drawing",
+    "orients_drawing",
+    "marks_revision"
   ]
 }

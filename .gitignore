@@ -3,3 +3,4 @@ __pycache__/
 .pytest_cache/
 data/*.db
 exports/*.csv
+input_data/
