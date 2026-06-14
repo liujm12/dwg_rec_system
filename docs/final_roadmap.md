@@ -710,7 +710,7 @@ seed-taxonomy
 
 ### M3: Multi-Discipline Taxonomy
 
-Status: next.
+Status: complete.
 
 Scope:
 
@@ -727,6 +727,8 @@ stable naming conventions
 ```
 
 ### M4: Quantity Takeoff
+
+Status: next.
 
 Scope:
 
@@ -805,13 +807,12 @@ Do not duplicate service logic in the API layer.
 The most practical sequence from the current repository state is:
 
 ```text
-1. Expand taxonomy into multi-discipline engineering classes.
-2. Add quantity_item and quantity generation.
-3. Add cost_item, budget_item, and budget generation.
-4. Add install_task and installation guidance.
-5. Add workflow dependency planning.
-6. Connect real DWG/DXF parser adapters.
-7. Add API and UI.
+1. Add quantity_item and quantity generation.
+2. Add cost_item, budget_item, and budget generation.
+3. Add install_task and installation guidance.
+4. Add workflow dependency planning.
+5. Connect real DWG/DXF parser adapters.
+6. Add API and UI.
 ```
 
 This order keeps the data foundation strong. Budgeting and installation planning depend on object identity, attributes, geometry, and relations. If those are weak, upper-layer outputs will become fragile flat reports instead of useful engineering workflows.

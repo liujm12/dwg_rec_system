@@ -103,7 +103,7 @@ Expected result:
 
 ## Milestone 3: Multi-Discipline Taxonomy Profile Foundation
 
-Status: NEXT.
+Status: COMPLETE.
 
 Detailed task package:
 
@@ -122,18 +122,19 @@ multi-discipline taxonomy profile
   -> validation tests
 ```
 
-Required direction:
+Completed:
 
-- Add a multi-discipline taxonomy profile without changing `schema.sql`.
-- Cover the first practical disciplines:
+- Added `dwg_rec_system/taxonomy/multi_discipline_taxonomy.json`.
+- Covered the first practical disciplines:
   - HVAC
   - PLUMBING / PROCESS PIPING
   - ELEC
   - BAS / ICA
   - CLEANROOM
-- Define object class profiles with stable class codes, Chinese names where useful, discipline, aliases, expected attributes, relation hints, budget hints, and installation hints.
-- Add tests that validate taxonomy profile shape and common fields.
-- Keep the profile parser-agnostic and service-oriented.
+- Defined object class profiles with stable class codes, discipline, aliases, expected attributes, relation hints, budget hints, and installation hints.
+- Added validation tests for profile shape, required disciplines, class code uniqueness, quantity methods, and installation defaults.
+- Added seeder compatibility tests proving profile hints can be summarized into `object_class.description` without schema changes.
+- Added `docs/taxonomy_profile.md`.
 
 Reason:
 
@@ -141,7 +142,7 @@ Quantity takeoff, budgeting, and installation planning need a shared engineering
 
 ## Milestone 4: Quantity Takeoff
 
-Status: PLANNED.
+Status: NEXT.
 
 Goal:
 
@@ -351,7 +352,6 @@ Success criteria:
 
 ## Near-Term Priority
 
-Do Round 3 next.
+Do Round 4 next.
 
-Do not start quantity tables, budget tables, installation tables, real DWG/DXF parsing, API, LLM, or PostGIS implementation until the multi-discipline taxonomy profile foundation is usable and tested.
-
+Round 4 should be an explicit schema task for quantity takeoff. Do not start budget tables, installation tables, real DWG/DXF parsing, API, LLM, or PostGIS implementation until quantity item semantics are designed, implemented, and tested.

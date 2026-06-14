@@ -93,6 +93,7 @@ The current `RelationEngine` accepts rule candidates immediately after creating 
 
 - `samples/demo_parsed.json`: normalized parser output with one control panel and one DDC controller.
 - `samples/demo_rules.json`: one spatial rule that infers `DDC mounted_on CONTROL_PANEL`.
+- `dwg_rec_system/taxonomy/multi_discipline_taxonomy.json`: Round 3 multi-discipline engineering profile for future quantity, budget, and installation services.
 
 ## Tests
 
@@ -120,4 +121,6 @@ python -m dwg_rec_system.cli init-db
 - `docs/development_plan.md`: staged development plan.
 - `docs/agent_tasks_round_1.md`: completed normalized import foundation tasks.
 - `docs/agent_tasks_round_2.md`: rule and candidate workflow task package.
+- `docs/agent_tasks_round_3.md`: completed multi-discipline taxonomy profile task package.
+- `docs/taxonomy_profile.md`: taxonomy profile shape and usage guide.
 - `docs/final_roadmap.md`: long-term database and module roadmap for multi-discipline budgeting and installation planning.
