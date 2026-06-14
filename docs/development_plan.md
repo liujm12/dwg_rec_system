@@ -12,11 +12,14 @@ The project currently has:
 - `RelationEngine` for simple rule-based relation inference through `relation_candidate -> accept -> relation`.
 - `NormalizedJsonImporter` for standardized parser-output JSON import.
 - `TaxonomySeeder` for idempotent taxonomy seeding.
-- CLI commands: `init-db`, `seed-taxonomy`, `import-json`, `seed-demo`, `list-objects`, `nearest`, `infer-relations`, `export-csv`.
+- `RuleTemplateSeeder` for idempotent rule template seeding from JSON.
+- Candidate review CLI commands for listing, accepting, and rejecting relation candidates.
+- Strict taxonomy mode for production-like imports.
+- CLI commands: `init-db`, `seed-taxonomy`, `import-json`, `seed-rules`, `seed-demo`, `list-objects`, `nearest`, `infer-relations`, `list-candidates`, `accept-candidate`, `reject-candidate`, `export-csv`.
 - Cleanroom CAD taxonomy JSON v0.2.0 with 164 object classes.
-- Test coverage for import, taxonomy, integration, taxonomy structure, and baseline relation flow.
+- Test coverage for import, taxonomy, rule seeding, candidate review, integration, taxonomy structure, and baseline relation flow.
 
-Milestone 1 is complete. The normalized import path works end to end.
+Milestone 1 and Milestone 2 are complete. The current system can import normalized parser output, validate classes against taxonomy, seed rules, infer one demo relation, review relation candidates, and export CSV.
 
 ## Milestone 1: Normalized Import Foundation
 
@@ -37,13 +40,13 @@ Completed:
 - Taxonomy seeding into `object_class`.
 - README and import-format documentation.
 
-Remaining lesson:
+Lesson:
 
-`import-json -> infer-relations` does not produce relations unless rules have also been seeded. Round 2 addresses this.
+Object import is only the first half of the engineering data foundation. Relation inference requires rule templates or another candidate-producing service.
 
 ## Milestone 2: Rule And Candidate Workflow
 
-Status: NEXT.
+Status: COMPLETE.
 
 Detailed task package:
 
@@ -62,15 +65,20 @@ seed-taxonomy
   -> export-csv
 ```
 
-Required work:
+Completed:
 
-- Add rule template JSON format.
-- Add `seed-rules --input samples/demo_rules.json`.
-- Add strict taxonomy mode for `import-json`.
-- Add candidate review CLI commands.
-- Update README so the documented workflow produces a real relation.
+- Rule template JSON format.
+- `seed-rules --input samples/demo_rules.json`.
+- Strict taxonomy mode for `import-json`.
+- Candidate review CLI commands:
+  - `list-candidates`
+  - `accept-candidate <candidate_id>`
+  - `reject-candidate <candidate_id>`
+- README workflow that produces a real relation.
+- Demo sample aligned with the current taxonomy using `DDC -> CONTROL_PANEL`.
+- Tests for rule seeding, strict taxonomy, candidate review, and end-to-end inference.
 
-Success criteria:
+Acceptance flow:
 
 ```powershell
 python -m pytest -q
@@ -93,7 +101,127 @@ Expected result:
 - relation inference produces a `mounted_on` relation
 - candidate listing shows the accepted rule candidate
 
-## Milestone 3: Parser Adapter Layer
+## Milestone 3: Multi-Discipline Taxonomy Profile Foundation
+
+Status: NEXT.
+
+Detailed task package:
+
+```text
+docs/agent_tasks_round_3.md
+```
+
+Goal:
+
+```text
+multi-discipline taxonomy profile
+  -> expected attributes
+  -> relation hints
+  -> budget profile hints
+  -> installation profile hints
+  -> validation tests
+```
+
+Required direction:
+
+- Add a multi-discipline taxonomy profile without changing `schema.sql`.
+- Cover the first practical disciplines:
+  - HVAC
+  - PLUMBING / PROCESS PIPING
+  - ELEC
+  - BAS / ICA
+  - CLEANROOM
+- Define object class profiles with stable class codes, Chinese names where useful, discipline, aliases, expected attributes, relation hints, budget hints, and installation hints.
+- Add tests that validate taxonomy profile shape and common fields.
+- Keep the profile parser-agnostic and service-oriented.
+
+Reason:
+
+Quantity takeoff, budgeting, and installation planning need a shared engineering dictionary before durable quantity or budget tables are added.
+
+## Milestone 4: Quantity Takeoff
+
+Status: PLANNED.
+
+Goal:
+
+```text
+cad_object + geometry + attribute + relation + taxonomy profile
+  -> quantity_item
+  -> quantity export
+```
+
+Candidate work:
+
+- Add a `quantity_item` table through an explicit architecture task.
+- Add `services/quantity.py`.
+- Generate quantity rows from objects, geometry, attributes, and relations.
+- Support count, length, area, grouped count, and formula-driven quantity methods.
+- Export quantity CSV.
+
+Success criteria:
+
+- Imported objects can produce auditable quantity rows.
+- Quantity evidence records the source object, method, grouping key, and confidence.
+- Tests cover count, length, area, and grouped quantities.
+
+## Milestone 5: Budgeting
+
+Status: PLANNED.
+
+Goal:
+
+```text
+quantity_item
+  -> cost_item match
+  -> budget_item
+  -> budget export
+```
+
+Candidate work:
+
+- Add `cost_item` and `budget_item` through an explicit architecture task.
+- Add `services/budget.py`.
+- Add sample cost item JSON.
+- Match quantity items to cost items by class, discipline, unit, and spec hints.
+- Export budget CSV or Excel.
+
+Success criteria:
+
+- Quantity items can become budget items.
+- Budget totals can be grouped by project, drawing, discipline, system, and area.
+- Budget records remain auditable and do not overwrite quantity records.
+
+## Milestone 6: Installation Guidance
+
+Status: PLANNED.
+
+Goal:
+
+```text
+cad_object + relation + taxonomy installation profile
+  -> install_task
+  -> install_dependency
+  -> install_instruction
+```
+
+Candidate work:
+
+- Add installation template and task tables through an explicit architecture task.
+- Add `services/installation.py`.
+- Generate object-level installation tasks from taxonomy profiles.
+- Generate simple dependencies from accepted relations.
+- Generate readable installation instructions.
+
+Success criteria:
+
+- Object classes can produce installation tasks.
+- Relations can produce dependency hints.
+- Installation instructions cite source objects and relation evidence.
+
+## Milestone 7: Parser Adapter Layer
+
+Status: PLANNED.
 
 Goal:
 
@@ -111,7 +239,9 @@ Success criteria:
 - A real or representative parsed file imports through the same `import-json` path.
 - No parser-specific code leaks into `ObjectStore`.
 
-## Milestone 4: Stronger Rule Inference
+## Milestone 8: Stronger Rule Inference
+
+Status: PLANNED.
 
 Goal:
 
@@ -141,7 +271,9 @@ Success criteria:
 - Accepted relations preserve evidence.
 - Tests cover each new rule type.
 
-## Milestone 5: Review And Correction Workflow
+## Milestone 9: Review And Correction Workflow
+
+Status: PLANNED.
 
 Goal:
 
@@ -158,7 +290,9 @@ Success criteria:
 - Manual correction marks old relation state and creates audit records.
 - Candidate review and manual correction can be performed without direct SQL.
 
-## Milestone 6: API Layer
+## Milestone 10: API Layer
+
+Status: PLANNED.
 
 Goal:
 
@@ -167,15 +301,17 @@ Expose the object store and inference workflows to UI, CAD plugins, and LLM serv
 Candidate work:
 
 - Add FastAPI or similar only after dependency decision.
-- Endpoints for import, list objects, object detail, candidates, relations, export.
+- Endpoints for import, list objects, object detail, candidates, relations, quantity, budget, installation plan, and export.
 - Keep CLI behavior working.
 
 Success criteria:
 
 - API calls use the same service layer as CLI.
-- No duplicate import or inference logic.
+- No duplicate import, inference, quantity, budget, or installation logic.
 
-## Milestone 7: Local LLM Inference Layer
+## Milestone 11: Local LLM Inference Layer
+
+Status: PLANNED.
 
 Goal:
 
@@ -193,7 +329,9 @@ Success criteria:
 - LLM output never writes directly to `relation`.
 - LLM service can be disabled without breaking deterministic workflows.
 
-## Milestone 8: Production Database Path
+## Milestone 12: Production Database Path
+
+Status: PLANNED.
 
 Goal:
 
@@ -213,5 +351,7 @@ Success criteria:
 
 ## Near-Term Priority
 
-Do Round 2 next. Do not start real DWG/DXF parsing, API, LLM, or PostGIS implementation until the rule and candidate workflow is usable from CLI.
+Do Round 3 next.
+
+Do not start quantity tables, budget tables, installation tables, real DWG/DXF parsing, API, LLM, or PostGIS implementation until the multi-discipline taxonomy profile foundation is usable and tested.
 

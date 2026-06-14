@@ -686,7 +686,7 @@ Scope:
 
 ### M2: Rule And Candidate Workflow
 
-Status: next.
+Status: complete.
 
 Scope:
 
@@ -709,6 +709,8 @@ seed-taxonomy
 ```
 
 ### M3: Multi-Discipline Taxonomy
+
+Status: next.
 
 Scope:
 
@@ -803,14 +805,13 @@ Do not duplicate service logic in the API layer.
 The most practical sequence from the current repository state is:
 
 ```text
-1. Complete Round 2 rule and candidate workflow.
-2. Expand taxonomy into multi-discipline engineering classes.
-3. Add quantity_item and quantity generation.
-4. Add cost_item, budget_item, and budget generation.
-5. Add install_task and installation guidance.
-6. Add workflow dependency planning.
-7. Connect real DWG/DXF parser adapters.
-8. Add API and UI.
+1. Expand taxonomy into multi-discipline engineering classes.
+2. Add quantity_item and quantity generation.
+3. Add cost_item, budget_item, and budget generation.
+4. Add install_task and installation guidance.
+5. Add workflow dependency planning.
+6. Connect real DWG/DXF parser adapters.
+7. Add API and UI.
 ```
 
 This order keeps the data foundation strong. Budgeting and installation planning depend on object identity, attributes, geometry, and relations. If those are weak, upper-layer outputs will become fragile flat reports instead of useful engineering workflows.
@@ -826,4 +827,3 @@ This order keeps the data foundation strong. Budgeting and installation planning
 - Keep LLM output structured, reviewable, and replaceable.
 - Prefer taxonomy and rule configuration over hard-coded discipline logic.
 - Add new tables only when the service layer needs durable, auditable outputs.
-
