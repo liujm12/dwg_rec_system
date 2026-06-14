@@ -117,7 +117,7 @@ Implement a taxonomy seeding CLI command:
 python -m dwg_rec_system.cli seed-taxonomy
 ```
 
-It should load `dwg_rec_system/taxonomy/cleanroom_cad_taxonomy.json` into `object_class`.
+It should load `dwg_rec_system/taxonomy/cad_object_taxonomy.json` into `object_class`.
 
 ### Allowed Files
 
@@ -271,4 +271,3 @@ python -m dwg_rec_system.cli list-objects
 python -m dwg_rec_system.cli infer-relations
 python -m dwg_rec_system.cli export-csv
 ```
-

@@ -77,7 +77,8 @@ dwg_rec_system/
     relation_engine.py  rule-based relation inference
     exports.py          CSV export
   taxonomy/
-    cleanroom_cad_taxonomy.json
+    cad_object_taxonomy.json
+    engineering_class_profiles.json
 
 migrations/
   sqlite/               SQLite notes
@@ -148,4 +149,3 @@ A completed task is acceptable only when:
 - It does not introduce unrelated changes.
 - It keeps commands working on a clean local checkout.
 - It documents any new CLI command, input format, or operational assumption.
-

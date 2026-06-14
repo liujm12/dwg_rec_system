@@ -24,7 +24,7 @@ class TaxonomySeeder:
             path = (
                 Path(__file__).resolve().parent.parent
                 / "taxonomy"
-                / "cleanroom_cad_taxonomy.json"
+                / "cad_object_taxonomy.json"
             )
 
         raw = Path(path).read_text(encoding="utf-8")

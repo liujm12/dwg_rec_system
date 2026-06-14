@@ -401,8 +401,8 @@ dwg_rec_system/
     install_plan_exporter.py
 
   taxonomy/
-    cleanroom_cad_taxonomy.json
-    multi_discipline_taxonomy.json
+    cad_object_taxonomy.json
+    engineering_class_profiles.json
 ```
 
 Near-term module priority:
@@ -714,9 +714,10 @@ Status: complete.
 
 Scope:
 
-- create `multi_discipline_taxonomy.json`
-- cover HVAC, plumbing/process piping, electrical, BAS/ICA, and cleanroom
-- define expected attributes, relation types, budget units, and installation hints
+- rename the primary object taxonomy to `cad_object_taxonomy.json`
+- create `engineering_class_profiles.json` as an overlay on existing class codes
+- cover HVAC, piping, electrical, BMS, and cleanroom profile groups
+- define expected attributes, relation hints, budget units, and installation hints
 
 Suggested first target:
 

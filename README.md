@@ -30,7 +30,8 @@ The long-term roadmap covers multi-discipline equipment recognition, quantity ta
 - SQLite schema for projects, drawings, objects, geometry, CAD metadata, attributes, rules, candidates, relations, corrections, and artifacts.
 - Normalized JSON importer for parser-agnostic CAD recognition output.
 - Idempotent object import by `source_file + handle`.
-- Taxonomy seeding from `dwg_rec_system/taxonomy/cleanroom_cad_taxonomy.json`.
+- Taxonomy seeding from `dwg_rec_system/taxonomy/cad_object_taxonomy.json`.
+- Engineering class profiles from `dwg_rec_system/taxonomy/engineering_class_profiles.json`.
 - Rule template seeding from JSON.
 - Rule-based relation inference through `relation_candidate -> relation`.
 - Candidate review CLI for listing, accepting, and rejecting relation candidates.
@@ -53,7 +54,7 @@ python -m dwg_rec_system.cli export-csv
 
 Expected result:
 
-- taxonomy seeding imports the cleanroom CAD object classes
+- taxonomy seeding imports the CAD object classes
 - JSON import creates the demo control panel and DDC objects
 - rule seeding creates or skips one `mounted_on` rule
 - relation inference creates one accepted candidate and one final relation
@@ -93,7 +94,8 @@ The current `RelationEngine` accepts rule candidates immediately after creating 
 
 - `samples/demo_parsed.json`: normalized parser output with one control panel and one DDC controller.
 - `samples/demo_rules.json`: one spatial rule that infers `DDC mounted_on CONTROL_PANEL`.
-- `dwg_rec_system/taxonomy/multi_discipline_taxonomy.json`: Round 3 multi-discipline engineering profile for future quantity, budget, and installation services.
+- `dwg_rec_system/taxonomy/cad_object_taxonomy.json`: primary CAD object taxonomy and the source for `object_class`.
+- `dwg_rec_system/taxonomy/engineering_class_profiles.json`: Round 3 engineering profile overlay for future quantity, budget, and installation services.
 
 ## Tests
 

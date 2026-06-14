@@ -1,6 +1,6 @@
 {
   "version": "0.2.0",
-  "domain": "cleanroom_cad",
+  "domain": "cad_object_taxonomy",
   "description": "无尘室 CAD 图纸识别的专业分类字典与对象分类字典。code 用作系统内部稳定标识，name_cn 用作展示名称。本文件覆盖常见洁净室、机电、管道、气体、自控、弱电、消防、建筑、结构与工艺设备对象，但仍允许按项目扩展。",
   "disciplines": [
     {

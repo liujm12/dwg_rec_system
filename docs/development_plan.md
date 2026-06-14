@@ -124,16 +124,17 @@ multi-discipline taxonomy profile
 
 Completed:
 
-- Added `dwg_rec_system/taxonomy/multi_discipline_taxonomy.json`.
-- Covered the first practical disciplines:
+- Renamed the primary taxonomy to `dwg_rec_system/taxonomy/cad_object_taxonomy.json`.
+- Added the engineering profile overlay `dwg_rec_system/taxonomy/engineering_class_profiles.json`.
+- Covered the first practical profile groups:
   - HVAC
-  - PLUMBING / PROCESS PIPING
+  - PIPING
   - ELEC
-  - BAS / ICA
+  - BMS
   - CLEANROOM
-- Defined object class profiles with stable class codes, discipline, aliases, expected attributes, relation hints, budget hints, and installation hints.
-- Added validation tests for profile shape, required disciplines, class code uniqueness, quantity methods, and installation defaults.
-- Added seeder compatibility tests proving profile hints can be summarized into `object_class.description` without schema changes.
+- Defined profile entries that reference existing base taxonomy codes.
+- Added validation tests for profile shape, required profile groups, class code uniqueness, base taxonomy code references, quantity methods, and installation defaults.
+- Confirmed the engineering profile is not seeded into `object_class`.
 - Added `docs/taxonomy_profile.md`.
 
 Reason:

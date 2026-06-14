@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 
-TAXONOMY_PATH = Path("dwg_rec_system/taxonomy/cleanroom_cad_taxonomy.json")
+TAXONOMY_PATH = Path("dwg_rec_system/taxonomy/cad_object_taxonomy.json")
 
 
 def load_taxonomy():
@@ -17,7 +17,7 @@ def test_taxonomy_object_classes_are_structurally_valid():
     object_codes = [item["code"] for item in object_classes]
     object_code_set = set(object_codes)
 
-    assert taxonomy["domain"] == "cleanroom_cad"
+    assert taxonomy["domain"] == "cad_object_taxonomy"
     assert len(object_classes) >= 160
     assert len(relation_types) >= 45
     assert len(object_codes) == len(object_code_set)

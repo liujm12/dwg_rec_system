@@ -1,0 +1,222 @@
+{
+  "version": "0.1",
+  "domain": "engineering_class_profiles",
+  "base_taxonomy": "cad_object_taxonomy.json",
+  "profile_groups": [
+    {"code": "HVAC", "name": "Heating, Ventilation, and Air Conditioning"},
+    {"code": "PIPING", "name": "Plumbing, Process Piping, and Utilities"},
+    {"code": "ELEC", "name": "Electrical"},
+    {"code": "BMS", "name": "Building Automation and Instrumentation"},
+    {"code": "CLEANROOM", "name": "Cleanroom"}
+  ],
+  "approved_quantity_methods": [
+    "count_by_object",
+    "length_by_geometry",
+    "area_by_geometry",
+    "grouped_count",
+    "formula",
+    "manual_review"
+  ],
+  "class_profiles": [
+    {
+      "code": "AHU",
+      "profile_group": "HVAC",
+      "expected_attributes": ["tag", "airflow", "cooling_capacity", "heating_capacity", "power", "system"],
+      "relations": ["located_in", "connected_to", "serves", "powered_by", "controlled_by"],
+      "budget": {"unit": "set", "quantity_method": "count_by_object", "group_by": ["airflow", "cooling_capacity"]},
+      "installation": {"work_package": "HVAC equipment installation", "default_steps": ["verify equipment tag", "confirm foundation and clearance", "set equipment", "connect ducts and piping", "connect power and controls", "commission"], "required_predecessors": ["FOUNDATION_READY"]}
+    },
+    {
+      "code": "FFU",
+      "profile_group": "HVAC",
+      "expected_attributes": ["tag", "airflow", "filter_grade", "power", "ceiling_grid", "room_no"],
+      "relations": ["located_in", "mounted_on", "serves", "powered_by", "controlled_by"],
+      "budget": {"unit": "set", "quantity_method": "count_by_object", "group_by": ["filter_grade", "airflow"]},
+      "installation": {"work_package": "ceiling HVAC equipment installation", "default_steps": ["verify ceiling grid", "lift unit", "set and level", "connect power", "install filter", "test airflow"], "required_predecessors": ["CEILING_GRID_READY"]}
+    },
+    {
+      "code": "DUCT",
+      "profile_group": "HVAC",
+      "expected_attributes": ["system", "width", "height", "length", "material", "insulation", "elevation"],
+      "relations": ["connected_to", "located_in", "belongs_to_system", "crosses"],
+      "budget": {"unit": "m2", "quantity_method": "area_by_geometry", "group_by": ["material", "insulation", "system"]},
+      "installation": {"work_package": "duct installation", "default_steps": ["confirm route", "install supports", "install duct sections", "seal joints", "inspect leakage", "label system"], "required_predecessors": ["SUPPORT_READY"]}
+    },
+    {
+      "code": "AIR_DIFFUSER",
+      "profile_group": "HVAC",
+      "expected_attributes": ["tag", "type", "airflow", "neck_size", "room_no"],
+      "relations": ["located_in", "connected_to", "serves"],
+      "budget": {"unit": "pcs", "quantity_method": "count_by_object", "group_by": ["type", "neck_size"]},
+      "installation": {"work_package": "air terminal installation", "default_steps": ["verify opening", "install diffuser", "connect branch duct", "seal edge", "adjust airflow"], "required_predecessors": ["CEILING_READY"]}
+    },
+    {
+      "code": "AIR_DAMPER",
+      "profile_group": "HVAC",
+      "expected_attributes": ["tag", "type", "size", "actuated", "system"],
+      "relations": ["installed_on", "connected_to", "controlled_by"],
+      "budget": {"unit": "pcs", "quantity_method": "count_by_object", "group_by": ["type", "size", "actuated"]},
+      "installation": {"work_package": "duct accessory installation", "default_steps": ["verify damper type", "confirm airflow direction", "install damper", "connect actuator if any", "test operation"], "required_predecessors": ["DUCT_SECTION_READY"]}
+    },
+    {
+      "code": "PIPE",
+      "profile_group": "PIPING",
+      "expected_attributes": ["system", "diameter", "material", "length", "medium", "pressure_rating", "elevation"],
+      "relations": ["connected_to", "belongs_to_system", "located_in", "crosses"],
+      "budget": {"unit": "m", "quantity_method": "length_by_geometry", "group_by": ["diameter", "material", "medium"]},
+      "installation": {"work_package": "pipe installation", "default_steps": ["confirm route", "install supports", "install pipe spool", "connect joints", "pressure test", "label system"], "required_predecessors": ["SUPPORT_READY"]}
+    },
+    {
+      "code": "VALVE",
+      "profile_group": "PIPING",
+      "expected_attributes": ["tag", "diameter", "valve_type", "material", "pressure_rating", "medium"],
+      "relations": ["installed_on", "connected_to", "located_in"],
+      "budget": {"unit": "pcs", "quantity_method": "count_by_object", "group_by": ["diameter", "valve_type", "material"]},
+      "installation": {"work_package": "pipe accessory installation", "default_steps": ["verify valve spec", "confirm flow direction", "install valve", "inspect sealing", "tag valve"], "required_predecessors": ["PIPE_SECTION_READY"]}
+    },
+    {
+      "code": "PUMP",
+      "profile_group": "PIPING",
+      "expected_attributes": ["tag", "flow_rate", "head", "power", "medium", "system"],
+      "relations": ["located_in", "connected_to", "powered_by", "controlled_by"],
+      "budget": {"unit": "set", "quantity_method": "count_by_object", "group_by": ["flow_rate", "head", "power"]},
+      "installation": {"work_package": "pump installation", "default_steps": ["verify foundation", "set pump", "align coupling", "connect piping", "connect power", "test run"], "required_predecessors": ["FOUNDATION_READY"]}
+    },
+    {
+      "code": "FLOW_METER",
+      "profile_group": "PIPING",
+      "expected_attributes": ["tag", "diameter", "range", "signal_type", "medium"],
+      "relations": ["installed_on", "connected_to", "controlled_by"],
+      "budget": {"unit": "pcs", "quantity_method": "count_by_object", "group_by": ["diameter", "signal_type"]},
+      "installation": {"work_package": "pipe instrument installation", "default_steps": ["verify straight length", "install meter", "connect signal cable", "check orientation", "calibrate"], "required_predecessors": ["PIPE_SECTION_READY"]}
+    },
+    {
+      "code": "PIPE_SUPPORT",
+      "profile_group": "PIPING",
+      "expected_attributes": ["support_type", "diameter", "material", "spacing", "system"],
+      "relations": ["supports", "installed_on", "located_in"],
+      "budget": {"unit": "pcs", "quantity_method": "count_by_object", "group_by": ["support_type", "diameter"]},
+      "installation": {"work_package": "support installation", "default_steps": ["mark support point", "install anchor", "install hanger", "adjust elevation", "inspect"], "required_predecessors": ["STRUCTURE_READY"]}
+    },
+    {
+      "code": "DISTRIBUTION_PANEL",
+      "profile_group": "ELEC",
+      "expected_attributes": ["tag", "voltage", "phase", "capacity", "room_no", "system"],
+      "relations": ["located_in", "powered_by", "feeds", "mounted_on"],
+      "budget": {"unit": "set", "quantity_method": "count_by_object", "group_by": ["voltage", "capacity"]},
+      "installation": {"work_package": "electrical panel installation", "default_steps": ["verify wall or base", "set panel", "level panel", "terminate cables", "test insulation", "energize"], "required_predecessors": ["ROOM_READY"]}
+    },
+    {
+      "code": "CABLE_TRAY",
+      "profile_group": "ELEC",
+      "expected_attributes": ["tray_type", "width", "height", "length", "material", "system"],
+      "relations": ["connected_to", "contains", "located_in", "crosses"],
+      "budget": {"unit": "m", "quantity_method": "length_by_geometry", "group_by": ["tray_type", "width", "material"]},
+      "installation": {"work_package": "cable tray installation", "default_steps": ["confirm route", "install supports", "install tray sections", "bond grounding", "inspect clearance"], "required_predecessors": ["SUPPORT_READY"]}
+    },
+    {
+      "code": "CABLE",
+      "profile_group": "ELEC",
+      "expected_attributes": ["cable_type", "core_count", "cross_section", "length", "voltage", "circuit_no"],
+      "relations": ["connected_to", "contained_in", "powered_by"],
+      "budget": {"unit": "m", "quantity_method": "length_by_geometry", "group_by": ["cable_type", "cross_section", "voltage"]},
+      "installation": {"work_package": "cable pulling", "default_steps": ["verify route", "pull cable", "fix and dress", "terminate", "test insulation", "label"], "required_predecessors": ["TRAY_OR_CONDUIT_READY"]}
+    },
+    {
+      "code": "LIGHT_FIXTURE",
+      "profile_group": "ELEC",
+      "expected_attributes": ["tag", "fixture_type", "power", "mounting_type", "room_no"],
+      "relations": ["located_in", "powered_by", "controlled_by", "mounted_on"],
+      "budget": {"unit": "set", "quantity_method": "count_by_object", "group_by": ["fixture_type", "power"]},
+      "installation": {"work_package": "lighting installation", "default_steps": ["verify mounting point", "install fixture", "connect wiring", "install lamp or module", "test lighting"], "required_predecessors": ["CEILING_READY"]}
+    },
+    {
+      "code": "POWER_OUTLET",
+      "profile_group": "ELEC",
+      "expected_attributes": ["tag", "outlet_type", "voltage", "current_rating", "room_no"],
+      "relations": ["located_in", "powered_by"],
+      "budget": {"unit": "pcs", "quantity_method": "count_by_object", "group_by": ["outlet_type", "voltage", "current_rating"]},
+      "installation": {"work_package": "wiring device installation", "default_steps": ["verify box", "terminate wires", "install outlet", "install cover", "test polarity"], "required_predecessors": ["BOX_READY"]}
+    },
+    {
+      "code": "PLC",
+      "profile_group": "BMS",
+      "expected_attributes": ["tag", "vendor", "model", "protocol", "panel_no"],
+      "relations": ["mounted_on", "controls", "connected_to"],
+      "budget": {"unit": "set", "quantity_method": "count_by_object", "group_by": ["vendor", "model"]},
+      "installation": {"work_package": "control equipment installation", "default_steps": ["verify panel layout", "install PLC", "connect power", "connect communication", "download program", "test communication"], "required_predecessors": ["CONTROL_PANEL_READY"]}
+    },
+    {
+      "code": "DDC",
+      "profile_group": "BMS",
+      "expected_attributes": ["tag", "vendor", "model", "protocol", "panel_no"],
+      "relations": ["mounted_on", "controls", "connected_to", "powered_by"],
+      "budget": {"unit": "set", "quantity_method": "count_by_object", "group_by": ["vendor", "model"]},
+      "installation": {"work_package": "control equipment installation", "default_steps": ["install controller", "connect power", "connect field bus", "bind points", "test control loop"], "required_predecessors": ["CONTROL_PANEL_READY"]}
+    },
+    {
+      "code": "IO_MODULE",
+      "profile_group": "BMS",
+      "expected_attributes": ["tag", "module_type", "point_count", "signal_type", "panel_no"],
+      "relations": ["mounted_on", "connected_to", "controlled_by"],
+      "budget": {"unit": "pcs", "quantity_method": "count_by_object", "group_by": ["module_type", "signal_type"]},
+      "installation": {"work_package": "control module installation", "default_steps": ["verify slot", "install module", "connect terminals", "address module", "test IO"], "required_predecessors": ["CONTROL_PANEL_READY"]}
+    },
+    {
+      "code": "TEMPERATURE_SENSOR",
+      "profile_group": "BMS",
+      "expected_attributes": ["tag", "range", "signal_type", "room_no", "controlled_object"],
+      "relations": ["located_in", "connected_to", "monitors"],
+      "budget": {"unit": "pcs", "quantity_method": "count_by_object", "group_by": ["signal_type", "range"]},
+      "installation": {"work_package": "field instrument installation", "default_steps": ["verify location", "install sensor", "connect cable", "label point", "calibrate"], "required_predecessors": ["CABLE_READY"]}
+    },
+    {
+      "code": "CONTROL_PANEL",
+      "profile_group": "BMS",
+      "expected_attributes": ["tag", "panel_no", "voltage", "location", "system"],
+      "relations": ["located_in", "contains", "powered_by", "connected_to"],
+      "budget": {"unit": "set", "quantity_method": "count_by_object", "group_by": ["voltage", "system"]},
+      "installation": {"work_package": "control panel installation", "default_steps": ["verify panel location", "set panel", "connect power", "terminate field cables", "test panel"], "required_predecessors": ["ROOM_READY"]}
+    },
+    {
+      "code": "ROOM",
+      "profile_group": "CLEANROOM",
+      "expected_attributes": ["room_no", "cleanliness_class", "area", "pressure", "temperature", "humidity"],
+      "relations": ["contains", "served_by", "located_in"],
+      "budget": {"unit": "m2", "quantity_method": "area_by_geometry", "group_by": ["cleanliness_class"]},
+      "installation": {"work_package": "cleanroom enclosure coordination", "default_steps": ["verify room boundary", "confirm clean class", "coordinate equipment openings", "inspect pressure cascade", "record room data"], "required_predecessors": ["ARCH_ROOM_READY"]}
+    },
+    {
+      "code": "CLEANROOM_PARTITION",
+      "profile_group": "CLEANROOM",
+      "expected_attributes": ["panel_type", "thickness", "height", "fire_rating", "room_no"],
+      "relations": ["bounds", "connected_to", "located_in"],
+      "budget": {"unit": "m2", "quantity_method": "area_by_geometry", "group_by": ["panel_type", "thickness"]},
+      "installation": {"work_package": "cleanroom partition installation", "default_steps": ["mark layout", "install base channel", "install panels", "seal joints", "inspect alignment"], "required_predecessors": ["FLOOR_READY"]}
+    },
+    {
+      "code": "PASS_BOX",
+      "profile_group": "CLEANROOM",
+      "expected_attributes": ["tag", "type", "size", "interlock", "room_no"],
+      "relations": ["installed_on", "connects_rooms", "powered_by"],
+      "budget": {"unit": "set", "quantity_method": "count_by_object", "group_by": ["type", "size"]},
+      "installation": {"work_package": "cleanroom equipment installation", "default_steps": ["verify opening", "install pass box", "seal perimeter", "connect power", "test interlock"], "required_predecessors": ["WALL_OPENING_READY"]}
+    },
+    {
+      "code": "AIR_SHOWER",
+      "profile_group": "CLEANROOM",
+      "expected_attributes": ["tag", "size", "door_type", "airflow", "room_no"],
+      "relations": ["located_in", "connected_to", "powered_by", "controlled_by"],
+      "budget": {"unit": "set", "quantity_method": "count_by_object", "group_by": ["size", "door_type"]},
+      "installation": {"work_package": "cleanroom equipment installation", "default_steps": ["verify base", "set air shower", "seal perimeter", "connect power", "test doors and airflow"], "required_predecessors": ["FLOOR_READY"]}
+    },
+    {
+      "code": "UTILITY_POINT",
+      "profile_group": "CLEANROOM",
+      "expected_attributes": ["tag", "utility_type", "connection_size", "room_no", "medium"],
+      "relations": ["located_in", "connected_to", "serves"],
+      "budget": {"unit": "pcs", "quantity_method": "count_by_object", "group_by": ["utility_type", "connection_size"]},
+      "installation": {"work_package": "cleanroom utility installation", "default_steps": ["verify point location", "install outlet or terminal", "connect service line", "test service", "label"], "required_predecessors": ["UTILITY_MAIN_READY"]}
+    }
+  ]
+}

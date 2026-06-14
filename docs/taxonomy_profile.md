@@ -1,50 +1,58 @@
 # Taxonomy Profile
 
-Round 3 introduces a multi-discipline taxonomy profile for future quantity takeoff, budgeting, installation guidance, and workflow planning.
+Round 3 separates object classification from engineering semantics.
 
-The profile is a JSON engineering dictionary. It is not a new database schema and it is not parser-specific recognition logic.
-
-## File
+The project now uses:
 
 ```text
-dwg_rec_system/taxonomy/multi_discipline_taxonomy.json
+dwg_rec_system/taxonomy/cad_object_taxonomy.json
+dwg_rec_system/taxonomy/engineering_class_profiles.json
 ```
 
-The initial profile covers:
+## Base Taxonomy
+
+`cad_object_taxonomy.json` is the primary CAD object taxonomy.
+
+It answers:
 
 ```text
-HVAC
-PLUMBING
-ELEC
-BAS_ICA
-CLEANROOM
+What kind of object is this?
 ```
 
-## Purpose
+It is the source for `object_class` and contains:
 
-The profile gives later services a shared source for:
+- `code`
+- `name_cn`
+- `discipline`
+- `parent_code`
+- `aliases`
+- `attributes`
+- `relations`
 
-- stable object class codes
-- discipline ownership
-- common aliases
-- expected attributes
-- relation hints
-- budget quantity hints
-- installation step hints
+`TaxonomySeeder.seed_file()` loads this file by default.
 
-This keeps engineering knowledge in data instead of scattering it through hard-coded Python conditionals.
+## Engineering Profile Overlay
 
-## Shape
+`engineering_class_profiles.json` is an overlay on top of the base taxonomy.
 
-Each `object_classes` entry uses this shape:
+It answers:
+
+```text
+How should this object class be used for quantity, budget, installation, and workflow planning?
+```
+
+It does not define new object classes and should not be seeded into `object_class`.
+
+Every `class_profiles[].code` must already exist in `cad_object_taxonomy.json`.
+
+## Profile Shape
+
+Each `class_profiles` entry uses this shape:
 
 ```json
 {
-  "code": "PLB_VALVE",
-  "name_cn": "Valve",
-  "discipline": "PLUMBING",
-  "parent_code": "PLB_PIPE_ACCESSORY",
-  "aliases": ["valve", "manual valve", "control valve"],
+  "code": "VALVE",
+  "profile_group": "PIPING",
   "expected_attributes": [
     "tag",
     "diameter",
@@ -77,18 +85,31 @@ Each `object_classes` entry uses this shape:
 }
 ```
 
-Allowed fields:
+Allowed profile fields:
 
 - `code`
-- `name_cn`
-- `discipline`
-- `parent_code`
-- `aliases`
+- `profile_group`
 - `expected_attributes`
 - `relations`
 - `budget`
 - `installation`
 - `description`
+
+Fields such as `name_cn`, `discipline`, `parent_code`, and `aliases` belong to the base taxonomy.
+
+## Approved Profile Groups
+
+Round 3 starts with:
+
+```text
+HVAC
+PIPING
+ELEC
+BMS
+CLEANROOM
+```
+
+These are profile groups for engineering behavior. They do not need to exactly match every `discipline` value in the base taxonomy.
 
 ## Approved Quantity Methods
 
@@ -112,31 +133,20 @@ Meaning:
 - `formula`: calculate from attributes and geometry with a declared formula in a later round.
 - `manual_review`: keep the object in the profile but require manual quantity review.
 
-## Relationship To `object_class`
+## Why This Is An Overlay
 
-The current database table `object_class` stores only:
+The base taxonomy should stay stable because it controls object identity and strict import validation.
 
-```text
-code
-name
-parent_code
-discipline
-description
-```
+Engineering profiles will evolve more often. Budget grouping, installation steps, and workflow prerequisites may vary by project type, region, or company standard.
 
-Round 3 deliberately does not add profile-specific columns.
+Keeping them separate avoids two problems:
 
-`TaxonomySeeder` maps profile entries as follows:
+- creating duplicate object class codes such as `VALVE` and `PLB_VALVE`
+- bloating the primary taxonomy with fast-changing engineering behavior
 
-```text
-code       -> object_class.code
-name_cn    -> object_class.name
-parent_code -> object_class.parent_code
-discipline -> object_class.discipline
-profile hints -> object_class.description
-```
+## Relationship To Future Tables
 
-For now, aliases, expected attributes, relations, budget hints, and installation hints are summarized into `description`. This is good enough for seeding and review while the profile shape is still evolving.
+Round 3 deliberately does not add profile-specific database columns.
 
 Future rounds may promote stable fields into dedicated tables such as:
 
@@ -162,7 +172,7 @@ Quantity services should use:
 Budget services should use:
 
 - class code
-- discipline
+- profile group
 - grouped quantity attributes
 - future cost item matching rules
 
@@ -176,7 +186,6 @@ Installation services should use:
 Relation and inference services may use:
 
 - `relations`
-- `aliases`
 - `expected_attributes`
 
 The profile should help services make better decisions, but it should not bypass the existing system boundaries:

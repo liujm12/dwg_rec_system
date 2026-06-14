@@ -13,11 +13,14 @@ seed-taxonomy
   -> export-csv
 ```
 
-Round 3 should make this foundation more useful for the final product goal:
+Round 3 adds an engineering profile overlay on top of the primary CAD object taxonomy:
 
 ```text
-multi-discipline taxonomy profile
-  -> expected object attributes
+cad_object_taxonomy.json
+  -> object_class
+
+engineering_class_profiles.json
+  -> expected attributes
   -> relation hints
   -> budget hints
   -> installation hints
@@ -26,9 +29,21 @@ multi-discipline taxonomy profile
 
 ## Round Goal
 
-Build a multi-discipline taxonomy profile foundation without changing the database schema.
+Build a multi-discipline engineering class profile foundation without changing the database schema.
 
-This round should define the engineering dictionary that later quantity, budget, and installation services will consume. It should stay JSON-based for now so the project can learn the right shape before promoting profile fields into durable tables.
+The project has one primary object taxonomy:
+
+```text
+dwg_rec_system/taxonomy/cad_object_taxonomy.json
+```
+
+Round 3 must not create a second competing taxonomy. It should add a profile overlay:
+
+```text
+dwg_rec_system/taxonomy/engineering_class_profiles.json
+```
+
+Each profile entry must reference an existing `code` from `cad_object_taxonomy.json`.
 
 ## Coordination Rules
 
@@ -37,49 +52,47 @@ This round should define the engineering dictionary that later quantity, budget,
 - Do not modify `schema.sql` in Round 3.
 - Do not add third-party dependencies in Round 3.
 - Do not implement quantity, budget, installation, API, LLM, DWG, or DXF runtime logic in Round 3.
-- Keep importers writing through `ObjectStore`.
-- Keep relation inference flowing through `relation_candidate -> relation`.
+- Do not create a second object class taxonomy.
+- Keep `cad_object_taxonomy.json` as the only source for `object_class`.
+- Keep `engineering_class_profiles.json` as a profile overlay only.
 - Prefer taxonomy/profile configuration over hard-coded discipline behavior.
 
 ## Proposed Profile Shape
 
-Use JSON entries with this general shape:
+Use JSON entries with this shape:
 
 ```json
 {
   "code": "VALVE",
-  "name_cn": "Valve",
-  "discipline": "PLUMBING",
-  "parent_code": "PIPE_ACCESSORY",
-  "aliases": ["valve", "control valve"],
+  "profile_group": "PIPING",
   "expected_attributes": [
     "tag",
     "diameter",
+    "valve_type",
     "material",
     "pressure_rating",
-    "system"
+    "medium"
   ],
   "relations": [
     "installed_on",
     "connected_to",
-    "located_in",
-    "belongs_to_system"
+    "located_in"
   ],
   "budget": {
     "unit": "pcs",
     "quantity_method": "count_by_object",
-    "group_by": ["diameter", "material", "pressure_rating"]
+    "group_by": ["diameter", "valve_type", "material"]
   },
   "installation": {
     "work_package": "pipe accessory installation",
     "default_steps": [
-      "verify type and specification",
-      "confirm installation location and flow direction",
-      "install and connect",
+      "verify valve spec",
+      "confirm flow direction",
+      "install valve",
       "inspect sealing",
-      "label and record"
+      "tag valve"
     ],
-    "required_predecessors": ["PIPE_INSTALLED"]
+    "required_predecessors": ["PIPE_SECTION_READY"]
   }
 }
 ```
@@ -87,26 +100,25 @@ Use JSON entries with this general shape:
 Allowed profile fields:
 
 - `code`
-- `name_cn`
-- `discipline`
-- `parent_code`
-- `aliases`
+- `profile_group`
 - `expected_attributes`
 - `relations`
 - `budget`
 - `installation`
 - `description`
 
-## Agent A: Multi-Discipline Taxonomy Profile
+Fields such as `name_cn`, `discipline`, `parent_code`, and `aliases` belong to `cad_object_taxonomy.json`, not the profile overlay.
+
+## Agent A: Engineering Class Profile Overlay
 
 ### Objective
 
-Create a multi-discipline taxonomy profile JSON file.
+Create the engineering profile overlay.
 
-Recommended file:
+Required file:
 
 ```text
-dwg_rec_system/taxonomy/multi_discipline_taxonomy.json
+dwg_rec_system/taxonomy/engineering_class_profiles.json
 ```
 
 ### Allowed Files
@@ -118,37 +130,39 @@ dwg_rec_system/taxonomy/multi_discipline_taxonomy.json
 ### Disallowed Changes
 
 - Do not modify `schema.sql`.
-- Do not modify production Python unless a small loader helper is explicitly needed.
-- Do not replace `cleanroom_cad_taxonomy.json`.
-- Do not remove existing taxonomy entries.
+- Do not replace `cad_object_taxonomy.json`.
+- Do not add profile entries for unknown object class codes.
 - Do not add external dependencies.
 
 ### Required Scope
 
-Cover these initial disciplines:
+Cover these initial profile groups:
 
 - `HVAC`
-- `PLUMBING`
+- `PIPING`
 - `ELEC`
-- `BAS_ICA`
+- `BMS`
 - `CLEANROOM`
 
 Suggested first target:
 
-- at least 10 classes per discipline
-- each class has `code`, `name_cn`, `discipline`, and `expected_attributes`
-- each class has either a `budget` profile or a clear reason in `description`
-- each class has installation hints when installation is meaningful
+- at least 5 representative profiles per profile group
+- every profile `code` exists in `cad_object_taxonomy.json`
+- every profile has `expected_attributes`
+- every profile has either a `budget` profile or a clear reason in `description`
+- every profile has installation hints when installation is meaningful
 
 ### Required Tests
 
 Add tests that verify:
 
-- JSON is valid UTF-8.
-- Top-level `object_classes` exists and is a list.
-- Class codes are unique.
-- Required disciplines are present.
-- Required fields exist on every class.
+- `cad_object_taxonomy.json` is the base taxonomy.
+- `engineering_class_profiles.json` is valid UTF-8 JSON.
+- Top-level `class_profiles` exists and is a list.
+- Profile codes are unique.
+- Every profile code exists in `cad_object_taxonomy.json`.
+- Required profile groups are present.
+- Required fields exist on every profile.
 - `budget.quantity_method`, when present, is one of the approved methods.
 - `installation.default_steps`, when present, is a list.
 
@@ -162,7 +176,7 @@ python -m pytest -q
 
 ### Objective
 
-Document how the multi-discipline profile should be used by future quantity, budget, and installation services.
+Document how the engineering profile overlay should be used by future quantity, budget, and installation services.
 
 ### Allowed Files
 
@@ -179,11 +193,12 @@ Document how the multi-discipline profile should be used by future quantity, bud
 
 Add or update documentation for:
 
-- taxonomy profile shape
-- approved disciplines
+- base taxonomy vs engineering profile overlay
+- profile shape
+- approved profile groups
 - approved quantity methods
-- relationship between taxonomy profile and `object_class`
 - why Round 3 avoids schema changes
+- why profile entries must reference existing object class codes
 - how future quantity/budget/installation services should consume the profile
 
 Suggested file:
@@ -202,7 +217,7 @@ python -m pytest -q
 
 ### Objective
 
-Verify whether the current `TaxonomySeeder` can seed the new multi-discipline profile without schema changes.
+Verify that `TaxonomySeeder` still seeds only the primary taxonomy into `object_class`.
 
 ### Allowed Files
 
@@ -214,30 +229,26 @@ Verify whether the current `TaxonomySeeder` can seed the new multi-discipline pr
 
 - Do not modify `schema.sql`.
 - Do not add profile-specific columns.
+- Do not seed `engineering_class_profiles.json` into `object_class`.
 - Do not hard-code all profile fields into Python conditionals.
 
 ### Required Behavior
 
-If the current seeder can already seed the new profile safely:
+The default `TaxonomySeeder.seed_file()` should load:
 
-- add tests that prove it
-- document the limitation that richer profile fields are currently summarized into `description`
+```text
+dwg_rec_system/taxonomy/cad_object_taxonomy.json
+```
 
-If a small compatibility change is needed:
-
-- keep it focused
-- preserve idempotency
-- keep `object_class.code`, `name`, `parent_code`, and `discipline` mapping unchanged
-- summarize aliases, expected attributes, budget hints, installation hints, and relations into `description`
+The engineering profile overlay should remain a separate JSON input for later services. It is validated by tests but not seeded into `object_class`.
 
 ### Required Tests
 
 Add tests for:
 
-- seeding multi-discipline profile creates classes
-- repeated seeding is idempotent
-- discipline and parent code are preserved
-- description contains enough profile hints for later review
+- default seeding uses the primary taxonomy
+- engineering profile codes all exist in the primary taxonomy
+- profile validation does not require database schema changes
 
 ### Validation Commands
 
@@ -269,7 +280,8 @@ After Round 3 is implemented and tested:
 - mark Milestone 3 as complete
 - set Milestone 4 Quantity Takeoff as next
 - keep warnings that quantity and budget tables require explicit schema tasks
-- document the multi-discipline taxonomy profile as the engineering dictionary source
+- document `cad_object_taxonomy.json` as the primary object taxonomy
+- document `engineering_class_profiles.json` as the engineering profile overlay
 
 ## Approved Quantity Methods
 
@@ -294,15 +306,15 @@ python -m pytest -q
 
 passes and the repository contains:
 
-- a multi-discipline taxonomy profile
-- validation tests for the profile
-- documentation explaining the profile
-- seeder compatibility tests or a clear documented limitation
+- a renamed primary taxonomy: `cad_object_taxonomy.json`
+- an engineering profile overlay: `engineering_class_profiles.json`
+- validation tests for the overlay
+- documentation explaining base taxonomy vs overlay
 
 Expected:
 
-- at least 5 disciplines are represented
-- class codes are unique
+- at least 5 profile groups are represented
+- profile codes are unique
+- every profile code exists in the primary taxonomy
 - profile shape is stable enough for Round 4 quantity takeoff design
 - no database schema changes are made
-

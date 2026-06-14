@@ -149,7 +149,9 @@ It should not introduce parser-specific assumptions such as AutoCAD-only handles
 
 ## Taxonomy Boundary
 
-`dwg_rec_system/taxonomy/cleanroom_cad_taxonomy.json` is the initial object class dictionary for cleanroom CAD. It should seed `object_class` but should not hard-code all domain behavior into Python conditionals.
+`dwg_rec_system/taxonomy/cad_object_taxonomy.json` is the primary CAD object class dictionary. It seeds `object_class` but should not hard-code all domain behavior into Python conditionals.
+
+`dwg_rec_system/taxonomy/engineering_class_profiles.json` is an engineering profile overlay for existing object class codes. It should not create a second taxonomy or seed new `object_class` rows. Later quantity, budget, and installation services can consume it for expected attributes, budget hints, installation hints, and relation hints.
 
 Object class metadata can help importers:
 
@@ -209,4 +211,3 @@ Agents must report a conflict instead of changing architecture when a task appea
 - adding runtime dependencies
 - replacing service/repository boundaries
 - making broad cross-cutting refactors
-
