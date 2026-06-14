@@ -202,6 +202,49 @@ CREATE TABLE IF NOT EXISTS relation_candidate (
 CREATE INDEX IF NOT EXISTS idx_relation_candidate_status ON relation_candidate(status);
 CREATE INDEX IF NOT EXISTS idx_relation_candidate_source ON relation_candidate(source_id);
 
+CREATE TABLE IF NOT EXISTS quantity_item (
+    id TEXT PRIMARY KEY,
+    project_id TEXT REFERENCES project(id) ON DELETE SET NULL,
+    drawing_id TEXT REFERENCES drawing(id) ON DELETE SET NULL,
+    source_object_id TEXT REFERENCES cad_object(id) ON DELETE SET NULL,
+    class_code TEXT NOT NULL,
+    discipline TEXT,
+    item_name TEXT NOT NULL,
+    spec TEXT,
+    unit TEXT NOT NULL,
+    quantity REAL NOT NULL CHECK (quantity >= 0),
+    quantity_method TEXT NOT NULL CHECK (
+        quantity_method IN (
+            'count_by_object',
+            'length_by_geometry',
+            'area_by_geometry',
+            'grouped_count',
+            'formula',
+            'manual_review'
+        )
+    ),
+    group_key TEXT,
+    location TEXT,
+    system_code TEXT,
+    confidence REAL NOT NULL DEFAULT 1.0 CHECK (confidence >= 0 AND confidence <= 1),
+    source TEXT NOT NULL DEFAULT 'auto' CHECK (
+        source IN ('auto', 'manual', 'rule', 'import', 'parser', 'llm')
+    ),
+    evidence_json TEXT,
+    status TEXT NOT NULL DEFAULT 'auto' CHECK (
+        status IN ('auto', 'reviewed', 'corrected', 'rejected')
+    ),
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_quantity_item_project ON quantity_item(project_id);
+CREATE INDEX IF NOT EXISTS idx_quantity_item_drawing ON quantity_item(drawing_id);
+CREATE INDEX IF NOT EXISTS idx_quantity_item_source_object ON quantity_item(source_object_id);
+CREATE INDEX IF NOT EXISTS idx_quantity_item_class ON quantity_item(class_code);
+CREATE INDEX IF NOT EXISTS idx_quantity_item_status ON quantity_item(status);
+CREATE INDEX IF NOT EXISTS idx_quantity_item_group ON quantity_item(group_key);
+
 CREATE TABLE IF NOT EXISTS grid_axis (
     id TEXT PRIMARY KEY,
     drawing_id TEXT REFERENCES drawing(id) ON DELETE CASCADE,

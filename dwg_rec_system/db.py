@@ -48,6 +48,7 @@ def init_database(path: str | Path | None = None) -> Path:
 
 def apply_compat_migrations(connection: sqlite3.Connection) -> None:
     """Add columns needed by the evolving schema on existing SQLite databases."""
+    create_compat_tables(connection)
     add_columns(
         connection,
         "drawing",
@@ -114,6 +115,66 @@ def apply_compat_migrations(connection: sqlite3.Connection) -> None:
     )
     connection.execute(
         "CREATE INDEX IF NOT EXISTS idx_attribute_namespace_key ON attribute(namespace, key)"
+    )
+
+
+def create_compat_tables(connection: sqlite3.Connection) -> None:
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS quantity_item (
+            id TEXT PRIMARY KEY,
+            project_id TEXT REFERENCES project(id) ON DELETE SET NULL,
+            drawing_id TEXT REFERENCES drawing(id) ON DELETE SET NULL,
+            source_object_id TEXT REFERENCES cad_object(id) ON DELETE SET NULL,
+            class_code TEXT NOT NULL,
+            discipline TEXT,
+            item_name TEXT NOT NULL,
+            spec TEXT,
+            unit TEXT NOT NULL,
+            quantity REAL NOT NULL CHECK (quantity >= 0),
+            quantity_method TEXT NOT NULL CHECK (
+                quantity_method IN (
+                    'count_by_object',
+                    'length_by_geometry',
+                    'area_by_geometry',
+                    'grouped_count',
+                    'formula',
+                    'manual_review'
+                )
+            ),
+            group_key TEXT,
+            location TEXT,
+            system_code TEXT,
+            confidence REAL NOT NULL DEFAULT 1.0 CHECK (confidence >= 0 AND confidence <= 1),
+            source TEXT NOT NULL DEFAULT 'auto' CHECK (
+                source IN ('auto', 'manual', 'rule', 'import', 'parser', 'llm')
+            ),
+            evidence_json TEXT,
+            status TEXT NOT NULL DEFAULT 'auto' CHECK (
+                status IN ('auto', 'reviewed', 'corrected', 'rejected')
+            ),
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+        """
+    )
+    connection.execute(
+        "CREATE INDEX IF NOT EXISTS idx_quantity_item_project ON quantity_item(project_id)"
+    )
+    connection.execute(
+        "CREATE INDEX IF NOT EXISTS idx_quantity_item_drawing ON quantity_item(drawing_id)"
+    )
+    connection.execute(
+        "CREATE INDEX IF NOT EXISTS idx_quantity_item_source_object ON quantity_item(source_object_id)"
+    )
+    connection.execute(
+        "CREATE INDEX IF NOT EXISTS idx_quantity_item_class ON quantity_item(class_code)"
+    )
+    connection.execute(
+        "CREATE INDEX IF NOT EXISTS idx_quantity_item_status ON quantity_item(status)"
+    )
+    connection.execute(
+        "CREATE INDEX IF NOT EXISTS idx_quantity_item_group ON quantity_item(group_key)"
     )
 
 
