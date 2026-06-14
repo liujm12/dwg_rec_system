@@ -7,49 +7,93 @@ This plan gives Claude Code and DeepSeek sub-agents a staged path for developing
 The project currently has:
 
 - SQLite schema for project, drawing, objects, geometry, CAD metadata, attributes, relations, candidates, corrections, artifacts, and axis tables.
-- `ObjectStore` for object ingestion (create/update via `source_file + handle`).
+- `ObjectStore` for object ingestion and idempotent create/update by `source_file + handle`.
 - `SpatialIndex` for nearest, contains, and overlap queries.
-- `RelationEngine` for simple rule-based relation inference via `relation_candidate → accept → relation`.
-- `NormalizedJsonImporter` for standardized JSON import (Round 1 output).
-- `TaxonomySeeder` for idempotent taxonomy seeding (164 object classes, Round 1 output).
+- `RelationEngine` for simple rule-based relation inference through `relation_candidate -> accept -> relation`.
+- `NormalizedJsonImporter` for standardized parser-output JSON import.
+- `TaxonomySeeder` for idempotent taxonomy seeding.
 - CLI commands: `init-db`, `seed-taxonomy`, `import-json`, `seed-demo`, `list-objects`, `nearest`, `infer-relations`, `export-csv`.
-- Cleanroom CAD taxonomy JSON (v0.2.0, 164 classes).
-- Comprehensive test coverage: import, taxonomy, integration, and baseline flow (28 tests).
+- Cleanroom CAD taxonomy JSON v0.2.0 with 164 object classes.
+- Test coverage for import, taxonomy, integration, taxonomy structure, and baseline relation flow.
 
-**Milestone 1 is complete.** The normalized import path works end to end.
+Milestone 1 is complete. The normalized import path works end to end.
 
-## Milestone 1: Normalized Import Foundation ✅
+## Milestone 1: Normalized Import Foundation
 
-**Status: COMPLETE (2026-06-10)**
+Status: COMPLETE.
 
 Goal:
 
 ```text
-external CAD parser result JSON -> ObjectStore -> query/infer/export
+external CAD parser result JSON -> ObjectStore -> query/export
+```
+
+Completed:
+
+- Normalized JSON import format.
+- `import-json` CLI.
+- Sample parsed CAD JSON.
+- Import tests.
+- Taxonomy seeding into `object_class`.
+- README and import-format documentation.
+
+Remaining lesson:
+
+`import-json -> infer-relations` does not produce relations unless rules have also been seeded. Round 2 addresses this.
+
+## Milestone 2: Rule And Candidate Workflow
+
+Status: NEXT.
+
+Detailed task package:
+
+```text
+docs/agent_tasks_round_2.md
+```
+
+Goal:
+
+```text
+seed-taxonomy
+  -> import-json
+  -> seed-rules
+  -> infer-relations
+  -> list/review candidates
+  -> export-csv
 ```
 
 Required work:
 
-- Define normalized JSON import format.
-- Implement `import-json` CLI.
-- Add sample parsed CAD JSON.
-- Add tests for import behavior.
-- Seed taxonomy into `object_class`.
-- Document import commands and expectations.
+- Add rule template JSON format.
+- Add `seed-rules --input samples/demo_rules.json`.
+- Add strict taxonomy mode for `import-json`.
+- Add candidate review CLI commands.
+- Update README so the documented workflow produces a real relation.
 
 Success criteria:
 
 ```powershell
 python -m pytest -q
+$env:DWG_REC_DB="data/round2_acceptance.db"
 python -m dwg_rec_system.cli init-db
 python -m dwg_rec_system.cli seed-taxonomy
-python -m dwg_rec_system.cli import-json --input samples/demo_parsed.json
-python -m dwg_rec_system.cli list-objects
+python -m dwg_rec_system.cli import-json --input samples/demo_parsed.json --strict-taxonomy
+python -m dwg_rec_system.cli seed-rules --input samples/demo_rules.json
 python -m dwg_rec_system.cli infer-relations
+python -m dwg_rec_system.cli list-candidates
 python -m dwg_rec_system.cli export-csv
 ```
 
-## Milestone 2: Parser Adapter Layer
+Expected result:
+
+- taxonomy seeding imports 164 object classes
+- JSON import creates 2 objects
+- repeated JSON import updates the same 2 objects
+- rule seeding is idempotent
+- relation inference produces a `mounted_on` relation
+- candidate listing shows the accepted rule candidate
+
+## Milestone 3: Parser Adapter Layer
 
 Goal:
 
@@ -67,7 +111,7 @@ Success criteria:
 - A real or representative parsed file imports through the same `import-json` path.
 - No parser-specific code leaks into `ObjectStore`.
 
-## Milestone 3: Stronger Rule Inference
+## Milestone 4: Stronger Rule Inference
 
 Goal:
 
@@ -97,7 +141,7 @@ Success criteria:
 - Accepted relations preserve evidence.
 - Tests cover each new rule type.
 
-## Milestone 4: Review And Correction Workflow
+## Milestone 5: Review And Correction Workflow
 
 Goal:
 
@@ -105,17 +149,16 @@ Make uncertain inference and manual correction operational.
 
 Candidate work:
 
-- CLI commands to list, accept, and reject candidates.
 - CLI/API commands for manual relation correction.
 - Tests for correction log behavior.
 - Artifact records for generated files.
 
 Success criteria:
 
-- A candidate can be reviewed without direct SQL.
 - Manual correction marks old relation state and creates audit records.
+- Candidate review and manual correction can be performed without direct SQL.
 
-## Milestone 5: API Layer
+## Milestone 6: API Layer
 
 Goal:
 
@@ -132,7 +175,7 @@ Success criteria:
 - API calls use the same service layer as CLI.
 - No duplicate import or inference logic.
 
-## Milestone 6: Local LLM Inference Layer
+## Milestone 7: Local LLM Inference Layer
 
 Goal:
 
@@ -150,7 +193,7 @@ Success criteria:
 - LLM output never writes directly to `relation`.
 - LLM service can be disabled without breaking deterministic workflows.
 
-## Milestone 7: Production Database Path
+## Milestone 8: Production Database Path
 
 Goal:
 
@@ -170,5 +213,5 @@ Success criteria:
 
 ## Near-Term Priority
 
-Do Milestone 1 first. Do not start UI, API, LLM, or PostGIS implementation before the normalized import path works end to end.
+Do Round 2 next. Do not start real DWG/DXF parsing, API, LLM, or PostGIS implementation until the rule and candidate workflow is usable from CLI.
 
