@@ -79,9 +79,9 @@ Create `samples/demo_rules.json`:
   "version": "0.1",
   "rules": [
     {
-      "name": "DCC mounted on nearest DCC rack",
-      "source_class": "DCC",
-      "target_class": "DCC_RACK",
+      "name": "DDC mounted on nearest control panel",
+      "source_class": "DDC",
+      "target_class": "CONTROL_PANEL",
       "relation_type": "mounted_on",
       "max_distance": 100,
       "min_confidence": 0.6,
@@ -141,7 +141,7 @@ python -m dwg_rec_system.cli seed-rules --input samples/demo_rules.json
 python -m dwg_rec_system.cli infer-relations
 ```
 
-Expected result: `infer-relations` returns one `mounted_on` relation for `DCC -> DCC_RACK`.
+Expected result: `infer-relations` returns one `mounted_on` relation for `DDC -> CONTROL_PANEL`.
 
 ## Agent B: Candidate Review CLI
 
@@ -392,4 +392,3 @@ Expected:
 - relation inference produces a `mounted_on` relation
 - candidate listing returns the accepted rule candidate
 - tests pass
-

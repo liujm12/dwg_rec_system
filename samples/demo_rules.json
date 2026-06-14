@@ -1,0 +1,15 @@
+{
+  "version": "0.1",
+  "rules": [
+    {
+      "name": "DDC mounted on nearest control panel",
+      "source_class": "DDC",
+      "target_class": "CONTROL_PANEL",
+      "relation_type": "mounted_on",
+      "max_distance": 100,
+      "min_confidence": 0.6,
+      "priority": 10,
+      "enabled": true
+    }
+  ]
+}

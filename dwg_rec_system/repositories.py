@@ -96,6 +96,13 @@ class ObjectClassRepository:
     def __init__(self, connection: sqlite3.Connection):
         self.connection = connection
 
+    def find_by_code(self, code: str) -> dict[str, Any] | None:
+        row = self.connection.execute(
+            "SELECT * FROM object_class WHERE code = ?",
+            (code,),
+        ).fetchone()
+        return row_to_dict(row)
+
     def get_or_create(
         self,
         code: str,
@@ -460,6 +467,36 @@ class RelationCandidateRepository:
     def __init__(self, connection: sqlite3.Connection):
         self.connection = connection
 
+    def list(
+        self,
+        status: str | None = None,
+        source: str | None = None,
+        relation_type: str | None = None,
+    ) -> list[dict[str, Any]]:
+        conditions: list[str] = []
+        params: list[Any] = []
+        if status:
+            conditions.append("status = ?")
+            params.append(status)
+        if source:
+            conditions.append("source = ?")
+            params.append(source)
+        if relation_type:
+            conditions.append("relation_type = ?")
+            params.append(relation_type)
+
+        where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+        rows = self.connection.execute(
+            f"""
+            SELECT *
+            FROM relation_candidate
+            {where}
+            ORDER BY created_at, id
+            """,
+            params,
+        ).fetchall()
+        return [dict(row) for row in rows]
+
     def upsert(
         self,
         source_id: str,
@@ -530,6 +567,18 @@ class RelationCandidateRepository:
             (candidate_id,),
         )
         return relation_id
+
+    def reject(self, candidate_id: str) -> None:
+        cursor = self.connection.execute(
+            """
+            UPDATE relation_candidate
+            SET status = 'rejected', updated_at = datetime('now')
+            WHERE id = ?
+            """,
+            (candidate_id,),
+        )
+        if cursor.rowcount == 0:
+            raise ValueError(f"relation candidate not found: {candidate_id}")
 
 
 class RuleTemplateRepository:

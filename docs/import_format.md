@@ -149,6 +149,27 @@ attributes          -> ObjectInput.attributes
 
 `class_id` should normally be resolved by importer from `object_class.code == class_name`. External parser output should use stable `class_name` codes, not internal database IDs.
 
+## Taxonomy Mode
+
+The importer supports two taxonomy modes.
+
+Non-strict mode is intended for exploration:
+
+```powershell
+python -m dwg_rec_system.cli import-json --input samples/demo_parsed.json
+```
+
+In non-strict mode, an unknown `class_name` may be imported. The importer creates a matching `object_class` row and reports the auto-created classes in the import summary.
+
+Strict mode is intended for production-like validation:
+
+```powershell
+python -m dwg_rec_system.cli seed-taxonomy
+python -m dwg_rec_system.cli import-json --input samples/demo_parsed.json --strict-taxonomy
+```
+
+In strict mode, every object `class_name` must already exist in `object_class`. Unknown classes are reported as per-object import errors and are not inserted into `cad_object`.
+
 ## Geometry
 
 Bounding box by center:
@@ -335,4 +356,3 @@ Round 1 importer should allow missing:
 - handle, only if there is a clear deterministic fallback strategy
 
 If there is no stable fallback for `handle`, the importer should reject the object because repeat imports would not be safe.
-

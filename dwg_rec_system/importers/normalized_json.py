@@ -19,8 +19,9 @@ class NormalizedJsonImporter:
     Follows the protocol defined in docs/import_format.md.
     """
 
-    def __init__(self, connection):
+    def __init__(self, connection, strict_taxonomy: bool = False):
         self.connection = connection
+        self.strict_taxonomy = strict_taxonomy
         self.store = ObjectStore(connection)
         self.projects = ProjectRepository(connection)
         self.drawings = DrawingRepository(connection)
@@ -78,6 +79,7 @@ class NormalizedJsonImporter:
         # ------------------------------------------------------------------
         created_count = 0
         updated_count = 0
+        auto_created_classes: list[str] = []
         errors: list[dict[str, Any]] = []
 
         for idx, obj_data in enumerate(objects_list):
@@ -99,8 +101,9 @@ class NormalizedJsonImporter:
                         f"object[{idx}]: missing 'handle' — repeatable imports require a stable identity"
                     )
 
-                # Resolve class_id from taxonomy if available
-                class_id = self._resolve_class_id(class_name)
+                class_id, auto_created_class = self._resolve_class_id(class_name)
+                if auto_created_class:
+                    auto_created_classes.append(class_name)
 
                 # Build geometry input
                 geometry = self._build_geometry(obj_data.get("geometry"))
@@ -153,6 +156,7 @@ class NormalizedJsonImporter:
             "objects_total": len(objects_list),
             "created": created_count,
             "updated": updated_count,
+            "auto_created_classes": sorted(set(auto_created_classes)),
             "errors": errors,
         }
 
@@ -160,12 +164,14 @@ class NormalizedJsonImporter:
     # Internal helpers
     # ------------------------------------------------------------------
 
-    def _resolve_class_id(self, class_name: str) -> str | None:
-        """Find object_class by code, return its id or None."""
-        try:
-            return self.classes.get_or_create(code=class_name, name=class_name)
-        except Exception:
-            return None
+    def _resolve_class_id(self, class_name: str) -> tuple[str | None, bool]:
+        """Resolve object_class by code, optionally rejecting unknown classes."""
+        existing = self.classes.find_by_code(class_name)
+        if existing:
+            return existing["id"], False
+        if self.strict_taxonomy:
+            raise ValueError(f"unknown class_name in strict taxonomy mode: {class_name}")
+        return self.classes.get_or_create(code=class_name, name=class_name), True
 
     @staticmethod
     def _build_geometry(raw: dict[str, Any] | None) -> GeometryInput | None:

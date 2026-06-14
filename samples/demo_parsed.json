@@ -14,10 +14,10 @@
   },
   "objects": [
     {
-      "class_name": "DCC_RACK",
+      "class_name": "CONTROL_PANEL",
       "subtype": "RACK_V1",
       "source_file": "demo.dwg",
-      "handle": "RACK01",
+      "handle": "PANEL01",
       "confidence": 0.98,
       "parser_name": "demo_parser",
       "parser_version": "0.1",
@@ -31,19 +31,19 @@
       },
       "cad_meta": {
         "layer": "E-EQUIP",
-        "block_name": "DCC_RACK_BLOCK",
+        "block_name": "CONTROL_PANEL_BLOCK",
         "color": "7"
       },
       "attributes": {
-        "tag": "RACK-01",
+        "tag": "CP-01",
         "vendor": "Generic"
       }
     },
     {
-      "class_name": "DCC",
-      "subtype": "DCC_V2",
+      "class_name": "DDC",
+      "subtype": "DDC_V2",
       "source_file": "demo.dwg",
-      "handle": "DCC01",
+      "handle": "DDC01",
       "confidence": 0.97,
       "parser_name": "demo_parser",
       "parser_version": "0.1",
@@ -58,11 +58,11 @@
       },
       "cad_meta": {
         "layer": "E-EQUIP",
-        "block_name": "DCC_BLOCK",
+        "block_name": "DDC_BLOCK",
         "color": "3"
       },
       "attributes": {
-        "tag": "DCC-001",
+        "tag": "DDC-001",
         "vendor": "ABB",
         "model": "AC800M"
       }
