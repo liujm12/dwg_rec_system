@@ -11,6 +11,8 @@ The final system should support this flow:
 ```text
 CAD/DWG/DXF/PDF/image source
   -> parser / CAD plugin / OCR / AI recognition
+  -> recognition modeling layer
+  -> accepted object hypothesis
   -> normalized JSON
   -> ObjectStore
   -> cad_object + geometry + cad_meta + attribute
@@ -31,6 +33,7 @@ The target is not only to identify objects in drawings. The system should eventu
 - how quantities should be calculated
 - how budget items should be matched
 - how installation tasks should be generated and sequenced
+- how recognition evidence supports each accepted object
 
 ## 2. Architectural Position
 
@@ -40,7 +43,7 @@ The repository currently owns the middle layer of the system:
 recognition output -> structured engineering data -> relation graph
 ```
 
-It should remain parser-agnostic. DWG parsers, DXF parsers, CAD plugins, OCR services, and LLM preprocessing tools should all produce normalized JSON and then enter the same import path.
+It should remain parser-agnostic. DWG parsers, DXF parsers, CAD plugins, OCR services, and LLM preprocessing tools should either produce normalized JSON directly or produce recognition hypotheses that can be accepted into the same normalized import path.
 
 The stable center should remain:
 
@@ -57,6 +60,8 @@ correction_log
 ```
 
 Do not let parser-specific logic, budgeting logic, or installation workflow logic bypass this core.
+
+PDF and image recognition should not write directly to `cad_object`. It should preserve primitives, candidates, hypotheses, confidence, and evidence before accepted hypotheses enter `ObjectStore`.
 
 ## 3. Database Roadmap
 
@@ -145,7 +150,34 @@ class_install_template
 
 Recommended rule: start with JSON profiles, then promote stable fields into tables only after repeated use proves the shape.
 
-### 3.3 Engineering Quantity Tables
+### 3.3 Recognition Modeling Tables
+
+Object recognition accuracy is a long-term core risk. Before implementing real PDF/DWG/DXF recognition, introduce a recognition modeling layer through an explicit architecture task.
+
+Candidate future tables:
+
+```text
+source_document
+drawing_page
+drawing_primitive
+recognition_candidate
+recognition_candidate_primitive
+object_hypothesis
+hypothesis_to_object
+```
+
+Responsibilities:
+
+- preserve source file and page/layout context
+- preserve low-level primitives such as lines, paths, text, circles, and images
+- preserve model/rule/OCR candidates and confidence
+- combine candidates into object hypotheses
+- allow review, rejection, merge, and supersession before creating final objects
+- map accepted hypotheses to `cad_object`
+
+This layer is especially important for PDF CAD drawings because CAD handles, blocks, and layers may be missing or unreliable.
+
+### 3.4 Engineering Quantity Tables
 
 Budgeting should be based on auditable quantity items, not temporary ad hoc queries.
 
@@ -198,7 +230,7 @@ Supported methods should start simple:
 - grouped count by selected attributes
 - formula-based calculation from known attributes
 
-### 3.4 Budget Tables
+### 3.5 Budget Tables
 
 Budget data should stay separate from quantity data. Quantity answers "how much"; budget answers "how much money under which pricing rule".
 
@@ -267,7 +299,7 @@ quantity_item
   -> summarize by project / drawing / discipline / system / area
 ```
 
-### 3.5 Installation Tables
+### 3.6 Installation Tables
 
 Installation guidance should be generated from structured installation tasks, not only free-form text.
 
@@ -373,6 +405,12 @@ dwg_rec_system/
     dxf_adapter.py
     dwg_adapter.py
     ocr_adapter.py
+
+  recognition/
+    primitives.py
+    candidates.py
+    hypotheses.py
+    evidence.py
 
   services/
     object_store.py
@@ -782,18 +820,36 @@ building / structure conditions
   -> system commissioning
 ```
 
-### M8: Real Parser Adapter Layer
+### M8: Recognition Modeling Layer
+
+Scope:
+
+- design recognition evidence tables
+- model source documents, pages/layouts, primitives, candidates, and object hypotheses
+- preserve candidate-to-primitive evidence
+- define acceptance flow from hypothesis to ObjectStore
+- define deterministic source-local identity for PDF objects that lack CAD handles
+
+Success criteria:
+
+- recognition outputs can stay pending, accepted, rejected, merged, or superseded
+- accepted hypotheses can be converted into normalized JSON or `ObjectInput`
+- final objects remain traceable back to recognition evidence
+- no model/parser writes directly to `cad_object` without the acceptance boundary
+
+### M9: Real Parser Adapter Layer
 
 Scope:
 
 - add DXF or DWG parser adapter
+- add PDF primitive extraction only after recognition modeling boundaries are defined
 - convert parser output into normalized JSON
 - preserve parser metadata in `cad_meta.raw_meta`
 - keep ObjectStore unchanged
 
-Do this only after the normalized import and relation workflow are stable.
+Do this only after the normalized import, relation workflow, and recognition modeling boundaries are stable.
 
-### M9: API And UI
+### M10: API And UI
 
 Scope:
 
@@ -809,11 +865,13 @@ The most practical sequence from the current repository state is:
 
 ```text
 1. Add quantity_item and quantity generation.
-2. Add cost_item, budget_item, and budget generation.
-3. Add install_task and installation guidance.
-4. Add workflow dependency planning.
-5. Connect real DWG/DXF parser adapters.
-6. Add API and UI.
+2. Add data quality checks for missing attributes, geometry, low confidence, and missing relations.
+3. Add cost_item, budget_item, and budget generation.
+4. Add install_task and installation guidance.
+5. Add workflow dependency planning.
+6. Add recognition modeling tables before real PDF/DWG parser work.
+7. Connect real DWG/DXF/PDF parser adapters.
+8. Add API and UI.
 ```
 
 This order keeps the data foundation strong. Budgeting and installation planning depend on object identity, attributes, geometry, and relations. If those are weak, upper-layer outputs will become fragile flat reports instead of useful engineering workflows.
@@ -826,6 +884,8 @@ This order keeps the data foundation strong. Budgeting and installation planning
 - Keep final engineering truth in `relation`.
 - Keep human correction auditable through correction tables.
 - Keep parser-specific assumptions outside the object store.
+- Keep recognition candidates and hypotheses separate from accepted objects.
+- Preserve recognition evidence before importing uncertain PDF/DWG results into `cad_object`.
 - Keep LLM output structured, reviewable, and replaceable.
 - Prefer taxonomy and rule configuration over hard-coded discipline logic.
 - Add new tables only when the service layer needs durable, auditable outputs.

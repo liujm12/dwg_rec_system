@@ -174,6 +174,33 @@ Status: PLANNED.
 Goal:
 
 ```text
+cad_object + attribute + geometry + relation + quantity_item
+  -> data quality findings
+  -> review priorities
+```
+
+Candidate work:
+
+- Add data quality checks before budgeting.
+- Detect missing required attributes from `engineering_class_profiles.json`.
+- Detect missing geometry needed for quantity methods.
+- Detect low confidence objects.
+- Detect missing accepted relations that are important for installation or budgeting.
+- Produce reviewable findings without blocking deterministic workflows.
+
+Success criteria:
+
+- The system can report which objects or quantities need human review.
+- Budgeting can avoid pretending uncertain input is exact.
+- Findings preserve evidence and object references.
+
+## Milestone 6: Budgeting
+
+Status: PLANNED.
+
+Goal:
+
+```text
 quantity_item
   -> cost_item match
   -> budget_item
@@ -194,7 +221,7 @@ Success criteria:
 - Budget totals can be grouped by project, drawing, discipline, system, and area.
 - Budget records remain auditable and do not overwrite quantity records.
 
-## Milestone 6: Installation Guidance
+## Milestone 7: Installation Guidance
 
 Status: PLANNED.
 
@@ -221,7 +248,36 @@ Success criteria:
 - Relations can produce dependency hints.
 - Installation instructions cite source objects and relation evidence.
 
-## Milestone 7: Parser Adapter Layer
+## Milestone 8: Recognition Modeling Layer
+
+Status: PLANNED.
+
+Goal:
+
+```text
+PDF/DWG/DXF/image source
+  -> primitives
+  -> recognition candidates
+  -> object hypotheses
+  -> accepted hypothesis
+  -> ObjectStore
+```
+
+Candidate work:
+
+- Design source document, page/layout, primitive, candidate, and hypothesis tables.
+- Preserve evidence from PDF vectors, text, OCR, CAD metadata, geometry, and model outputs.
+- Define status flow for hypotheses: pending, accepted, rejected, merged, superseded.
+- Define deterministic source-local ids for PDF objects that do not have CAD handles.
+- Ensure accepted hypotheses enter the existing normalized JSON / ObjectStore boundary.
+
+Success criteria:
+
+- Recognition output is reviewable before becoming final objects.
+- Accepted objects are traceable back to recognition evidence.
+- Parser/model output does not write directly to `cad_object`.
+
+## Milestone 9: Parser Adapter Layer
 
 Status: PLANNED.
 
@@ -231,8 +287,9 @@ Connect real CAD parsing output without changing the object store contract.
 
 Candidate work:
 
-- Add parser adapter interfaces under `dwg_rec_system/importers/` or `dwg_rec_system/parsers/`.
+- Add parser adapter interfaces under `dwg_rec_system/importers/`, `dwg_rec_system/parsers/`, or a future recognition package.
 - Support DXF first if DWG tooling is unavailable locally.
+- Support PDF primitive extraction after recognition modeling boundaries are defined.
 - Convert block, text, line, polyline, and bbox records into normalized JSON.
 - Preserve parser metadata in `cad_meta.raw_meta` or import job stats.
 
@@ -241,7 +298,7 @@ Success criteria:
 - A real or representative parsed file imports through the same `import-json` path.
 - No parser-specific code leaks into `ObjectStore`.
 
-## Milestone 8: Stronger Rule Inference
+## Milestone 10: Stronger Rule Inference
 
 Status: PLANNED.
 
@@ -273,7 +330,7 @@ Success criteria:
 - Accepted relations preserve evidence.
 - Tests cover each new rule type.
 
-## Milestone 9: Review And Correction Workflow
+## Milestone 11: Review And Correction Workflow
 
 Status: PLANNED.
 
@@ -292,7 +349,7 @@ Success criteria:
 - Manual correction marks old relation state and creates audit records.
 - Candidate review and manual correction can be performed without direct SQL.
 
-## Milestone 10: API Layer
+## Milestone 12: API Layer
 
 Status: PLANNED.
 
@@ -311,7 +368,7 @@ Success criteria:
 - API calls use the same service layer as CLI.
 - No duplicate import, inference, quantity, budget, or installation logic.
 
-## Milestone 11: Local LLM Inference Layer
+## Milestone 13: Local LLM Inference Layer
 
 Status: PLANNED.
 
@@ -331,7 +388,7 @@ Success criteria:
 - LLM output never writes directly to `relation`.
 - LLM service can be disabled without breaking deterministic workflows.
 
-## Milestone 12: Production Database Path
+## Milestone 14: Production Database Path
 
 Status: PLANNED.
 
@@ -355,4 +412,4 @@ Success criteria:
 
 Do Round 4 next.
 
-Round 4 should be an explicit schema task for quantity takeoff. Do not start budget tables, installation tables, real DWG/DXF parsing, API, LLM, or PostGIS implementation until quantity item semantics are designed, implemented, and tested.
+Round 4 should implement quantity takeoff on top of the existing `quantity_item` schema. Do not start budget tables, installation tables, real DWG/DXF/PDF parsing, API, LLM, or PostGIS implementation until quantity item semantics are implemented and tested.

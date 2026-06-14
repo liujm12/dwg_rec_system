@@ -11,7 +11,9 @@ The system should remain parser-agnostic. A DWG parser, DXF parser, CAD plugin, 
 ## Main Data Flow
 
 ```text
-CAD/DWG/DXF/parser output
+CAD/DWG/DXF/PDF/image source
+  -> recognition modeling layer
+  -> accepted object hypothesis
   -> normalized JSON import format
   -> ObjectInput / GeometryInput / CadMetaInput
   -> ObjectStore
@@ -22,6 +24,8 @@ CAD/DWG/DXF/parser output
   -> accepted relation
   -> exports/artifacts
 ```
+
+The normalized JSON import path remains the stable boundary into the object store. A future PDF/DWG/DXF recognition pipeline should produce accepted object hypotheses first, then convert those hypotheses into normalized JSON or `ObjectInput`.
 
 ## Core Domain Model
 
@@ -103,6 +107,48 @@ Human changes should be represented with:
 
 Auditability is a product requirement, not an optional feature.
 
+## Recognition Modeling Layer
+
+Object recognition accuracy is a core product risk. PDF CAD drawings are especially difficult because PDF often preserves only vectors, paths, text, images, colors, and coordinates while losing CAD handles, block names, and layer semantics.
+
+Future recognition work should model uncertainty explicitly before creating final objects:
+
+```text
+source document
+  -> drawing page
+  -> drawing primitive
+  -> recognition candidate
+  -> object hypothesis
+  -> accepted hypothesis
+  -> normalized JSON / ObjectStore
+```
+
+Concepts:
+
+- `source_document`: original PDF, DWG, DXF, image, or CAD export.
+- `drawing_page`: PDF page, CAD layout, or drawing sheet coordinate space.
+- `drawing_primitive`: low-level line, polyline, path, text, circle, image, or symbol fragment.
+- `recognition_candidate`: model/rule/OCR suggestion such as possible `VALVE` or possible `TEXT_LABEL`.
+- `object_hypothesis`: combined engineering object hypothesis with class, geometry, attributes, confidence, and evidence.
+- accepted hypothesis: the point where a hypothesis may enter `ObjectStore`.
+
+Recognition models, PDF parsers, OCR, and geometric grouping should not write directly to `cad_object` as final truth. They should preserve candidates and evidence until a deterministic rule, confidence threshold, or human review accepts a hypothesis.
+
+The current database does not yet implement these recognition tables. They are a planned layer and should be introduced through an explicit architecture task before real PDF/DWG recognition work.
+
+Recognition evidence should preserve:
+
+- source document and page
+- primitive ids or raw primitive data
+- model/parser name and version
+- candidate classes and scores
+- geometry evidence
+- text/OCR evidence
+- rule or model reasoning
+- status such as `pending`, `accepted`, `rejected`, `merged`, or `superseded`
+
+Downstream engineering outputs such as `quantity_item`, future `budget_item`, and future `install_task` should remain traceable back to accepted objects and, eventually, to their recognition evidence.
+
 ## Module Responsibilities
 
 ### `dwg_rec_system.db`
@@ -146,6 +192,8 @@ external JSON
 ```
 
 It should not introduce parser-specific assumptions such as AutoCAD-only handles or layer naming conventions. Those can be optional metadata fields.
+
+For future PDF recognition, generated object identity must be deterministic within the source document, because PDF does not provide native CAD handles. The recognition layer should generate stable source-local ids before data enters `ObjectStore`.
 
 ## Taxonomy Boundary
 
