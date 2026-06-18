@@ -581,6 +581,118 @@ class RelationCandidateRepository:
             raise ValueError(f"relation candidate not found: {candidate_id}")
 
 
+class QuantityRepository:
+    def __init__(self, connection: sqlite3.Connection):
+        self.connection = connection
+
+    def upsert(
+        self,
+        class_code: str,
+        item_name: str,
+        unit: str,
+        quantity: float,
+        quantity_method: str,
+        project_id: str | None = None,
+        drawing_id: str | None = None,
+        source_object_id: str | None = None,
+        discipline: str | None = None,
+        spec: str | None = None,
+        group_key: str | None = None,
+        location: str | None = None,
+        system_code: str | None = None,
+        confidence: float = 1.0,
+        source: str = "auto",
+        evidence: dict[str, Any] | None = None,
+        status: str = "auto",
+    ) -> str:
+        quantity_id = new_id("qty")
+        self.connection.execute(
+            """
+            INSERT INTO quantity_item(
+                id, project_id, drawing_id, source_object_id, class_code,
+                discipline, item_name, spec, unit, quantity, quantity_method,
+                group_key, location, system_code, confidence, source,
+                evidence_json, status
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                quantity_id,
+                project_id,
+                drawing_id,
+                source_object_id,
+                class_code,
+                discipline,
+                item_name,
+                spec,
+                unit,
+                quantity,
+                quantity_method,
+                group_key,
+                location,
+                system_code,
+                confidence,
+                source,
+                json.dumps(evidence, ensure_ascii=False) if evidence else None,
+                status,
+            ),
+        )
+        return quantity_id
+
+    def clear_auto(
+        self,
+        project_id: str | None = None,
+        drawing_id: str | None = None,
+    ) -> int:
+        conditions = ["source = 'auto'", "status = 'auto'"]
+        params: list[Any] = []
+        if project_id:
+            conditions.append("project_id = ?")
+            params.append(project_id)
+        if drawing_id:
+            conditions.append("drawing_id = ?")
+            params.append(drawing_id)
+        cursor = self.connection.execute(
+            f"DELETE FROM quantity_item WHERE {' AND '.join(conditions)}",
+            params,
+        )
+        return cursor.rowcount
+
+    def list(
+        self,
+        project_id: str | None = None,
+        drawing_id: str | None = None,
+        class_code: str | None = None,
+        status: str | None = None,
+    ) -> list[dict[str, Any]]:
+        conditions: list[str] = []
+        params: list[Any] = []
+        if project_id:
+            conditions.append("project_id = ?")
+            params.append(project_id)
+        if drawing_id:
+            conditions.append("drawing_id = ?")
+            params.append(drawing_id)
+        if class_code:
+            conditions.append("class_code = ?")
+            params.append(class_code)
+        if status:
+            conditions.append("status = ?")
+            params.append(status)
+
+        where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+        rows = self.connection.execute(
+            f"""
+            SELECT *
+            FROM quantity_item
+            {where}
+            ORDER BY class_code, group_key, source_object_id, id
+            """,
+            params,
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+
 class RuleTemplateRepository:
     def __init__(self, connection: sqlite3.Connection):
         self.connection = connection

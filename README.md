@@ -11,6 +11,7 @@ CAD/DWG/DXF/parser output
   -> cad_object + geometry + cad_meta + attribute
   -> relation_candidate
   -> accepted relation
+  -> quantity_item
   -> exports and future engineering deliverables
 ```
 
@@ -35,8 +36,9 @@ The long-term roadmap covers multi-discipline equipment recognition, quantity ta
 - Rule template seeding from JSON.
 - Rule-based relation inference through `relation_candidate -> relation`.
 - Candidate review CLI for listing, accepting, and rejecting relation candidates.
+- Quantity takeoff into durable `quantity_item` rows from engineering profiles, geometry, and attributes.
 - Spatial queries for nearest, contains, and overlap.
-- CSV export for recognized objects.
+- CSV export for recognized objects and quantity rows.
 
 ## Quick Start
 
@@ -49,7 +51,10 @@ python -m dwg_rec_system.cli import-json --input samples/demo_parsed.json --stri
 python -m dwg_rec_system.cli seed-rules --input samples/demo_rules.json
 python -m dwg_rec_system.cli infer-relations
 python -m dwg_rec_system.cli list-candidates
+python -m dwg_rec_system.cli generate-quantities
+python -m dwg_rec_system.cli list-quantities
 python -m dwg_rec_system.cli export-csv
+python -m dwg_rec_system.cli export-quantities-csv
 ```
 
 Expected result:
@@ -58,7 +63,9 @@ Expected result:
 - JSON import creates the demo control panel and DDC objects
 - rule seeding creates or skips one `mounted_on` rule
 - relation inference creates one accepted candidate and one final relation
+- quantity generation creates auditable `quantity_item` rows from `engineering_class_profiles.json`
 - CSV export writes `exports/objects.csv`
+- quantity CSV export writes `exports/quantities.csv`
 
 ## Important Notes
 
@@ -71,6 +78,8 @@ Expected result:
 Without `--strict-taxonomy`, unknown classes are allowed and are auto-created for exploratory imports.
 
 The current `RelationEngine` accepts rule candidates immediately after creating them. Manual review workflows are exposed through candidate CLI commands and can become richer in later milestones.
+
+`generate-quantities` is not a budget generator. It creates auditable quantity rows that later budget services can price. Unsupported formula methods and missing geometry produce `manual_review` quantity rows with evidence explaining the reason.
 
 ## CLI Commands
 
@@ -89,13 +98,16 @@ The current `RelationEngine` accepts rule candidates immediately after creating 
 | `accept-candidate <candidate_id>` | Accept a relation candidate into final `relation`. |
 | `reject-candidate <candidate_id>` | Mark a relation candidate as rejected. |
 | `export-csv [--output <file>]` | Export recognized objects to CSV. |
+| `generate-quantities [--project-id <id>] [--drawing-id <id>]` | Generate `quantity_item` rows from objects and engineering profiles. |
+| `list-quantities [--class-code <class>] [--status <status>]` | List generated quantity rows as JSON. |
+| `export-quantities-csv [--output <file>]` | Export quantity rows to CSV. |
 
 ## Sample Files
 
 - `samples/demo_parsed.json`: normalized parser output with one control panel and one DDC controller.
 - `samples/demo_rules.json`: one spatial rule that infers `DDC mounted_on CONTROL_PANEL`.
 - `dwg_rec_system/taxonomy/cad_object_taxonomy.json`: primary CAD object taxonomy and the source for `object_class`.
-- `dwg_rec_system/taxonomy/engineering_class_profiles.json`: Round 3 engineering profile overlay for future quantity, budget, and installation services.
+- `dwg_rec_system/taxonomy/engineering_class_profiles.json`: engineering profile overlay used by quantity generation and future budget/installation services.
 
 ## Tests
 

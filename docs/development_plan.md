@@ -15,9 +15,10 @@ The project currently has:
 - `RuleTemplateSeeder` for idempotent rule template seeding from JSON.
 - Candidate review CLI commands for listing, accepting, and rejecting relation candidates.
 - Strict taxonomy mode for production-like imports.
-- CLI commands: `init-db`, `seed-taxonomy`, `import-json`, `seed-rules`, `seed-demo`, `list-objects`, `nearest`, `infer-relations`, `list-candidates`, `accept-candidate`, `reject-candidate`, `export-csv`.
+- Quantity takeoff service that generates durable `quantity_item` rows from recognized objects, geometry, attributes, and engineering profiles.
+- CLI commands: `init-db`, `seed-taxonomy`, `import-json`, `seed-rules`, `seed-demo`, `list-objects`, `nearest`, `infer-relations`, `list-candidates`, `accept-candidate`, `reject-candidate`, `generate-quantities`, `list-quantities`, `export-csv`, `export-quantities-csv`.
 - Cleanroom CAD taxonomy JSON v0.2.0 with 164 object classes.
-- Test coverage for import, taxonomy, rule seeding, candidate review, integration, taxonomy structure, and baseline relation flow.
+- Test coverage for import, taxonomy, rule seeding, candidate review, integration, taxonomy structure, baseline relation flow, quantity generation, and quantity export.
 
 Milestone 1 and Milestone 2 are complete. The current system can import normalized parser output, validate classes against taxonomy, seed rules, infer one demo relation, review relation candidates, and export CSV.
 
@@ -143,7 +144,7 @@ Quantity takeoff, budgeting, and installation planning need a shared engineering
 
 ## Milestone 4: Quantity Takeoff
 
-Status: NEXT.
+Status: COMPLETE.
 
 Goal:
 
@@ -153,13 +154,14 @@ cad_object + geometry + attribute + relation + taxonomy profile
   -> quantity export
 ```
 
-Candidate work:
+Completed:
 
-- Add a `quantity_item` table through an explicit architecture task.
-- Add `services/quantity.py`.
-- Generate quantity rows from objects, geometry, attributes, and relations.
-- Support count, length, area, grouped count, and formula-driven quantity methods.
-- Export quantity CSV.
+- Added repository access for `quantity_item`.
+- Added `services/quantity.py`.
+- Generate quantity rows from objects, geometry, attributes, and engineering profile `budget` hints.
+- Support count, grouped count, length by geometry, area by geometry, and `manual_review` fallback.
+- Expose `generate-quantities`, `list-quantities`, and `export-quantities-csv`.
+- Preserve reviewed, corrected, and manual quantity rows during regeneration.
 
 Success criteria:
 
@@ -167,9 +169,9 @@ Success criteria:
 - Quantity evidence records the source object, method, grouping key, and confidence.
 - Tests cover count, length, area, and grouped quantities.
 
-## Milestone 5: Budgeting
+## Milestone 5: Data Quality Gate
 
-Status: PLANNED.
+Status: NEXT.
 
 Goal:
 
@@ -410,6 +412,6 @@ Success criteria:
 
 ## Near-Term Priority
 
-Do Round 4 next.
+Do data quality checks next.
 
-Round 4 should implement quantity takeoff on top of the existing `quantity_item` schema. Do not start budget tables, installation tables, real DWG/DXF/PDF parsing, API, LLM, or PostGIS implementation until quantity item semantics are implemented and tested.
+The quantity layer is now in place. Before budget tables, installation tables, real DWG/DXF/PDF parsing, API, LLM, or PostGIS work, the next practical step is to report missing attributes, missing geometry, low confidence objects, and missing relation evidence so later budget and installation outputs do not pretend uncertain input is exact.

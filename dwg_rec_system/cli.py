@@ -10,6 +10,7 @@ from .repositories import (
     DrawingRepository,
     ObjectClassRepository,
     ProjectRepository,
+    QuantityRepository,
     RelationCandidateRepository,
     RelationRepository,
     seed_rules,
@@ -17,6 +18,7 @@ from .repositories import (
 from .importers.normalized_json import NormalizedJsonImporter
 from .services.exports import CsvExporter
 from .services.object_store import ObjectStore
+from .services.quantity import QuantityGenerator
 from .services.relation_engine import RelationEngine
 from .services.rules import RuleTemplateSeeder
 from .services.spatial_index import SpatialIndex
@@ -168,6 +170,38 @@ def cmd_export_csv(args: argparse.Namespace) -> None:
     print(f"exported: {output}")
 
 
+def cmd_generate_quantities(args: argparse.Namespace) -> None:
+    with session() as connection:
+        summary = QuantityGenerator(connection).generate(
+            project_id=args.project_id,
+            drawing_id=args.drawing_id,
+        )
+    print(json.dumps(summary, ensure_ascii=False, indent=2))
+
+
+def cmd_list_quantities(args: argparse.Namespace) -> None:
+    with session() as connection:
+        rows = QuantityRepository(connection).list(
+            project_id=args.project_id,
+            drawing_id=args.drawing_id,
+            class_code=args.class_code,
+            status=args.status,
+        )
+    print(json.dumps(rows, ensure_ascii=False, indent=2))
+
+
+def cmd_export_quantities_csv(args: argparse.Namespace) -> None:
+    with session() as connection:
+        output = CsvExporter(connection).export_quantities(
+            args.output,
+            project_id=args.project_id,
+            drawing_id=args.drawing_id,
+            class_code=args.class_code,
+            status=args.status,
+        )
+    print(f"exported: {output}")
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="CAD drawing recognition system database tools.")
     parser.add_argument("--db", default=None, help="Reserved for future use. Use DWG_REC_DB for now.")
@@ -225,6 +259,32 @@ def build_parser() -> argparse.ArgumentParser:
     export = subparsers.add_parser("export-csv", help="Export object list as CSV.")
     export.add_argument("--output", default=str(Path("exports/objects.csv")))
     export.set_defaults(func=cmd_export_csv)
+
+    generate_quantities = subparsers.add_parser(
+        "generate-quantities",
+        help="Generate durable quantity_item rows from recognized objects.",
+    )
+    generate_quantities.add_argument("--project-id")
+    generate_quantities.add_argument("--drawing-id")
+    generate_quantities.set_defaults(func=cmd_generate_quantities)
+
+    list_quantities = subparsers.add_parser("list-quantities", help="List generated quantity rows.")
+    list_quantities.add_argument("--project-id")
+    list_quantities.add_argument("--drawing-id")
+    list_quantities.add_argument("--class-code")
+    list_quantities.add_argument("--status", choices=["auto", "reviewed", "corrected", "rejected"])
+    list_quantities.set_defaults(func=cmd_list_quantities)
+
+    export_quantities = subparsers.add_parser(
+        "export-quantities-csv",
+        help="Export quantity rows as CSV.",
+    )
+    export_quantities.add_argument("--output", default=str(Path("exports/quantities.csv")))
+    export_quantities.add_argument("--project-id")
+    export_quantities.add_argument("--drawing-id")
+    export_quantities.add_argument("--class-code")
+    export_quantities.add_argument("--status", choices=["auto", "reviewed", "corrected", "rejected"])
+    export_quantities.set_defaults(func=cmd_export_quantities_csv)
 
     return parser
 

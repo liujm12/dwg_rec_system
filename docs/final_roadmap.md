@@ -767,17 +767,29 @@ stable naming conventions
 
 ### M4: Quantity Takeoff
 
+Status: complete.
+
+Scope:
+
+- `quantity_item`
+- `services/quantity.py`
+- generate quantity rows from objects, geometry, attributes, and engineering profiles
+- support count, grouped count, length, area, and manual-review fallback
+- export quantity CSV
+
+### M5: Data Quality Gate
+
 Status: next.
 
 Scope:
 
-- add `quantity_item`
-- add `services/quantity.py`
-- generate quantity rows from objects, geometry, attributes, and relations
-- support count, length, area, and grouped quantity methods
-- export quantity CSV
+- detect missing expected attributes from `engineering_class_profiles.json`
+- detect missing geometry required by quantity methods
+- detect low-confidence objects and low-confidence quantity inputs
+- detect missing accepted relations needed for budgeting or installation
+- produce reviewable findings before budget generation
 
-### M5: Budgeting
+### M6: Budgeting
 
 Scope:
 
@@ -788,7 +800,7 @@ Scope:
 - generate project, drawing, discipline, system, and area summaries
 - export budget CSV or Excel
 
-### M6: Installation Guidance
+### M7: Installation Guidance
 
 Scope:
 
@@ -798,7 +810,7 @@ Scope:
 - generate readable installation instructions
 - support object-level and discipline-level installation guidance
 
-### M7: Workflow Planning
+### M8: Workflow Planning
 
 Scope:
 
@@ -820,7 +832,7 @@ building / structure conditions
   -> system commissioning
 ```
 
-### M8: Recognition Modeling Layer
+### M9: Recognition Modeling Layer
 
 Scope:
 
@@ -837,7 +849,7 @@ Success criteria:
 - final objects remain traceable back to recognition evidence
 - no model/parser writes directly to `cad_object` without the acceptance boundary
 
-### M9: Real Parser Adapter Layer
+### M10: Real Parser Adapter Layer
 
 Scope:
 
@@ -849,7 +861,7 @@ Scope:
 
 Do this only after the normalized import, relation workflow, and recognition modeling boundaries are stable.
 
-### M10: API And UI
+### M11: API And UI
 
 Scope:
 
@@ -864,7 +876,7 @@ Do not duplicate service logic in the API layer.
 The most practical sequence from the current repository state is:
 
 ```text
-1. Add quantity_item and quantity generation.
+1. Complete quantity generation and quantity CSV export.
 2. Add data quality checks for missing attributes, geometry, low confidence, and missing relations.
 3. Add cost_item, budget_item, and budget generation.
 4. Add install_task and installation guidance.

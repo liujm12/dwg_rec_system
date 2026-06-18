@@ -64,3 +64,81 @@ class CsvExporter:
             writer.writeheader()
             writer.writerows(dict(row) for row in rows)
         return output
+
+    def export_quantities(
+        self,
+        path: str | Path,
+        project_id: str | None = None,
+        drawing_id: str | None = None,
+        class_code: str | None = None,
+        status: str | None = None,
+    ) -> Path:
+        output = Path(path)
+        output.parent.mkdir(parents=True, exist_ok=True)
+
+        conditions: list[str] = []
+        params: list[str] = []
+        if project_id:
+            conditions.append("project_id = ?")
+            params.append(project_id)
+        if drawing_id:
+            conditions.append("drawing_id = ?")
+            params.append(drawing_id)
+        if class_code:
+            conditions.append("class_code = ?")
+            params.append(class_code)
+        if status:
+            conditions.append("status = ?")
+            params.append(status)
+
+        where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+        rows = self.connection.execute(
+            f"""
+            SELECT
+                id,
+                project_id,
+                drawing_id,
+                source_object_id,
+                class_code,
+                discipline,
+                item_name,
+                spec,
+                unit,
+                quantity,
+                quantity_method,
+                group_key,
+                location,
+                system_code,
+                status,
+                confidence,
+                source
+            FROM quantity_item
+            {where}
+            ORDER BY class_code, group_key, source_object_id, id
+            """,
+            params,
+        ).fetchall()
+        fields = [
+            "id",
+            "project_id",
+            "drawing_id",
+            "source_object_id",
+            "class_code",
+            "discipline",
+            "item_name",
+            "spec",
+            "unit",
+            "quantity",
+            "quantity_method",
+            "group_key",
+            "location",
+            "system_code",
+            "status",
+            "confidence",
+            "source",
+        ]
+        with output.open("w", newline="", encoding="utf-8-sig") as file:
+            writer = csv.DictWriter(file, fieldnames=fields)
+            writer.writeheader()
+            writer.writerows(dict(row) for row in rows)
+        return output
