@@ -12,6 +12,7 @@ CAD/DWG/DXF/parser output
   -> relation_candidate
   -> accepted relation
   -> quantity_item
+  -> data quality findings
   -> exports and future engineering deliverables
 ```
 
@@ -37,8 +38,9 @@ The long-term roadmap covers multi-discipline equipment recognition, quantity ta
 - Rule-based relation inference through `relation_candidate -> relation`.
 - Candidate review CLI for listing, accepting, and rejecting relation candidates.
 - Quantity takeoff into durable `quantity_item` rows from engineering profiles, geometry, and attributes.
+- Data quality checks for missing attributes, missing geometry, low confidence, manual-review quantities, missing profiles, and missing accepted relations.
 - Spatial queries for nearest, contains, and overlap.
-- CSV export for recognized objects and quantity rows.
+- CSV export for recognized objects, quantity rows, and data quality findings.
 
 ## Quick Start
 
@@ -53,8 +55,11 @@ python -m dwg_rec_system.cli infer-relations
 python -m dwg_rec_system.cli list-candidates
 python -m dwg_rec_system.cli generate-quantities
 python -m dwg_rec_system.cli list-quantities
+python -m dwg_rec_system.cli check-data-quality
+python -m dwg_rec_system.cli list-quality-findings
 python -m dwg_rec_system.cli export-csv
 python -m dwg_rec_system.cli export-quantities-csv
+python -m dwg_rec_system.cli export-quality-findings-csv
 ```
 
 Expected result:
@@ -64,8 +69,10 @@ Expected result:
 - rule seeding creates or skips one `mounted_on` rule
 - relation inference creates one accepted candidate and one final relation
 - quantity generation creates auditable `quantity_item` rows from `engineering_class_profiles.json`
+- data quality checks produce reviewable findings before budgeting
 - CSV export writes `exports/objects.csv`
 - quantity CSV export writes `exports/quantities.csv`
+- quality CSV export writes `exports/quality_findings.csv`
 
 ## Important Notes
 
@@ -80,6 +87,8 @@ Without `--strict-taxonomy`, unknown classes are allowed and are auto-created fo
 The current `RelationEngine` accepts rule candidates immediately after creating them. Manual review workflows are exposed through candidate CLI commands and can become richer in later milestones.
 
 `generate-quantities` is not a budget generator. It creates auditable quantity rows that later budget services can price. Unsupported formula methods and missing geometry produce `manual_review` quantity rows with evidence explaining the reason.
+
+`check-data-quality` is not a durable review database. Round 5 recomputes findings from current objects, quantities, relations, and engineering profiles, then prints JSON or exports CSV. Budget generation should wait until findings are reviewed or accepted as known risk.
 
 ## CLI Commands
 
@@ -101,6 +110,9 @@ The current `RelationEngine` accepts rule candidates immediately after creating 
 | `generate-quantities [--project-id <id>] [--drawing-id <id>]` | Generate `quantity_item` rows from objects and engineering profiles. |
 | `list-quantities [--class-code <class>] [--status <status>]` | List generated quantity rows as JSON. |
 | `export-quantities-csv [--output <file>]` | Export quantity rows to CSV. |
+| `check-data-quality [--low-confidence-threshold N]` | Recompute data quality findings and print summary plus findings. |
+| `list-quality-findings [--severity <level>] [--category <category>]` | Recompute and list filtered findings as JSON. |
+| `export-quality-findings-csv [--output <file>]` | Recompute and export findings to CSV. |
 
 ## Sample Files
 
@@ -136,5 +148,7 @@ python -m dwg_rec_system.cli init-db
 - `docs/agent_tasks_round_1.md`: completed normalized import foundation tasks.
 - `docs/agent_tasks_round_2.md`: rule and candidate workflow task package.
 - `docs/agent_tasks_round_3.md`: completed multi-discipline taxonomy profile task package.
+- `docs/agent_tasks_round_4.md`: completed quantity takeoff task package.
+- `docs/agent_tasks_round_5.md`: completed data quality gate task package.
 - `docs/taxonomy_profile.md`: taxonomy profile shape and usage guide.
 - `docs/final_roadmap.md`: long-term database and module roadmap for multi-discipline budgeting and installation planning.

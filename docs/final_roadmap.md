@@ -779,7 +779,7 @@ Scope:
 
 ### M5: Data Quality Gate
 
-Status: next.
+Status: complete.
 
 Scope:
 
@@ -790,6 +790,8 @@ Scope:
 - produce reviewable findings before budget generation
 
 ### M6: Budgeting
+
+Status: next.
 
 Scope:
 
@@ -877,7 +879,7 @@ The most practical sequence from the current repository state is:
 
 ```text
 1. Complete quantity generation and quantity CSV export.
-2. Add data quality checks for missing attributes, geometry, low confidence, and missing relations.
+2. Complete data quality checks for missing attributes, geometry, low confidence, and missing relations.
 3. Add cost_item, budget_item, and budget generation.
 4. Add install_task and installation guidance.
 5. Add workflow dependency planning.

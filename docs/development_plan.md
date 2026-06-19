@@ -16,9 +16,10 @@ The project currently has:
 - Candidate review CLI commands for listing, accepting, and rejecting relation candidates.
 - Strict taxonomy mode for production-like imports.
 - Quantity takeoff service that generates durable `quantity_item` rows from recognized objects, geometry, attributes, and engineering profiles.
-- CLI commands: `init-db`, `seed-taxonomy`, `import-json`, `seed-rules`, `seed-demo`, `list-objects`, `nearest`, `infer-relations`, `list-candidates`, `accept-candidate`, `reject-candidate`, `generate-quantities`, `list-quantities`, `export-csv`, `export-quantities-csv`.
+- Data quality checker that reports missing attributes, missing geometry, low confidence objects, manual-review quantities, missing profiles, and missing accepted relations.
+- CLI commands: `init-db`, `seed-taxonomy`, `import-json`, `seed-rules`, `seed-demo`, `list-objects`, `nearest`, `infer-relations`, `list-candidates`, `accept-candidate`, `reject-candidate`, `generate-quantities`, `list-quantities`, `check-data-quality`, `list-quality-findings`, `export-csv`, `export-quantities-csv`, `export-quality-findings-csv`.
 - Cleanroom CAD taxonomy JSON v0.2.0 with 164 object classes.
-- Test coverage for import, taxonomy, rule seeding, candidate review, integration, taxonomy structure, baseline relation flow, quantity generation, and quantity export.
+- Test coverage for import, taxonomy, rule seeding, candidate review, integration, taxonomy structure, baseline relation flow, quantity generation, quantity export, data quality checks, and quality export.
 
 Milestone 1 and Milestone 2 are complete. The current system can import normalized parser output, validate classes against taxonomy, seed rules, infer one demo relation, review relation candidates, and export CSV.
 
@@ -171,7 +172,7 @@ Success criteria:
 
 ## Milestone 5: Data Quality Gate
 
-Status: NEXT.
+Status: COMPLETE.
 
 Goal:
 
@@ -181,14 +182,17 @@ cad_object + attribute + geometry + relation + quantity_item
   -> review priorities
 ```
 
-Candidate work:
+Completed:
 
-- Add data quality checks before budgeting.
+- Added `services/data_quality.py`.
 - Detect missing required attributes from `engineering_class_profiles.json`.
 - Detect missing geometry needed for quantity methods.
 - Detect low confidence objects.
+- Detect `manual_review` quantity rows.
+- Detect objects without engineering profiles.
 - Detect missing accepted relations that are important for installation or budgeting.
-- Produce reviewable findings without blocking deterministic workflows.
+- Produce recomputed JSON/CSV findings without blocking deterministic workflows.
+- Expose `check-data-quality`, `list-quality-findings`, and `export-quality-findings-csv`.
 
 Success criteria:
 
@@ -198,7 +202,7 @@ Success criteria:
 
 ## Milestone 6: Budgeting
 
-Status: PLANNED.
+Status: NEXT.
 
 Goal:
 
@@ -412,6 +416,6 @@ Success criteria:
 
 ## Near-Term Priority
 
-Do data quality checks next.
+Do budgeting next.
 
-The quantity layer is now in place. Before budget tables, installation tables, real DWG/DXF/PDF parsing, API, LLM, or PostGIS work, the next practical step is to report missing attributes, missing geometry, low confidence objects, and missing relation evidence so later budget and installation outputs do not pretend uncertain input is exact.
+The quantity and data quality layers are now in place. The next practical step is to design `cost_item` and `budget_item`, then generate auditable budget rows from reviewed or accepted-risk quantity items. Do not start installation tables, real DWG/DXF/PDF parsing, API, LLM, or PostGIS implementation before the budgeting boundary is defined.

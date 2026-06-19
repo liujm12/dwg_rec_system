@@ -16,6 +16,7 @@ from .repositories import (
     seed_rules,
 )
 from .importers.normalized_json import NormalizedJsonImporter
+from .services.data_quality import DataQualityChecker, filter_findings
 from .services.exports import CsvExporter
 from .services.object_store import ObjectStore
 from .services.quantity import QuantityGenerator
@@ -202,6 +203,44 @@ def cmd_export_quantities_csv(args: argparse.Namespace) -> None:
     print(f"exported: {output}")
 
 
+def _quality_result(args: argparse.Namespace) -> dict:
+    with session() as connection:
+        return DataQualityChecker(
+            connection,
+            low_confidence_threshold=args.low_confidence_threshold,
+        ).check(
+            project_id=args.project_id,
+            drawing_id=args.drawing_id,
+        )
+
+
+def cmd_check_data_quality(args: argparse.Namespace) -> None:
+    result = _quality_result(args)
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+def cmd_list_quality_findings(args: argparse.Namespace) -> None:
+    result = _quality_result(args)
+    findings = filter_findings(
+        result["findings"],
+        severity=args.severity,
+        category=args.category,
+    )
+    print(json.dumps(findings, ensure_ascii=False, indent=2))
+
+
+def cmd_export_quality_findings_csv(args: argparse.Namespace) -> None:
+    result = _quality_result(args)
+    findings = filter_findings(
+        result["findings"],
+        severity=args.severity,
+        category=args.category,
+    )
+    with session() as connection:
+        output = CsvExporter(connection).export_quality_findings(args.output, findings)
+    print(f"exported: {output}")
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="CAD drawing recognition system database tools.")
     parser.add_argument("--db", default=None, help="Reserved for future use. Use DWG_REC_DB for now.")
@@ -285,6 +324,58 @@ def build_parser() -> argparse.ArgumentParser:
     export_quantities.add_argument("--class-code")
     export_quantities.add_argument("--status", choices=["auto", "reviewed", "corrected", "rejected"])
     export_quantities.set_defaults(func=cmd_export_quantities_csv)
+
+    check_quality = subparsers.add_parser(
+        "check-data-quality",
+        help="Check objects and quantities for reviewable data quality findings.",
+    )
+    check_quality.add_argument("--project-id")
+    check_quality.add_argument("--drawing-id")
+    check_quality.add_argument("--low-confidence-threshold", type=float, default=0.8)
+    check_quality.set_defaults(func=cmd_check_data_quality)
+
+    list_quality = subparsers.add_parser(
+        "list-quality-findings",
+        help="List recomputed data quality findings.",
+    )
+    list_quality.add_argument("--project-id")
+    list_quality.add_argument("--drawing-id")
+    list_quality.add_argument("--low-confidence-threshold", type=float, default=0.8)
+    list_quality.add_argument("--severity", choices=["error", "warning", "info"])
+    list_quality.add_argument(
+        "--category",
+        choices=[
+            "missing_attribute",
+            "missing_geometry",
+            "low_confidence",
+            "manual_review_quantity",
+            "missing_relation",
+            "missing_profile",
+        ],
+    )
+    list_quality.set_defaults(func=cmd_list_quality_findings)
+
+    export_quality = subparsers.add_parser(
+        "export-quality-findings-csv",
+        help="Export recomputed data quality findings as CSV.",
+    )
+    export_quality.add_argument("--output", default=str(Path("exports/quality_findings.csv")))
+    export_quality.add_argument("--project-id")
+    export_quality.add_argument("--drawing-id")
+    export_quality.add_argument("--low-confidence-threshold", type=float, default=0.8)
+    export_quality.add_argument("--severity", choices=["error", "warning", "info"])
+    export_quality.add_argument(
+        "--category",
+        choices=[
+            "missing_attribute",
+            "missing_geometry",
+            "low_confidence",
+            "manual_review_quantity",
+            "missing_relation",
+            "missing_profile",
+        ],
+    )
+    export_quality.set_defaults(func=cmd_export_quality_findings_csv)
 
     return parser
 

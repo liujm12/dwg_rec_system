@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import json
 import sqlite3
 from pathlib import Path
 
@@ -142,3 +143,44 @@ class CsvExporter:
             writer.writeheader()
             writer.writerows(dict(row) for row in rows)
         return output
+
+    def export_quality_findings(
+        self,
+        path: str | Path,
+        findings: list[dict],
+    ) -> Path:
+        output = Path(path)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        fields = [
+            "finding_id",
+            "severity",
+            "category",
+            "code",
+            "message",
+            "project_id",
+            "drawing_id",
+            "object_id",
+            "quantity_item_id",
+            "class_code",
+            "discipline",
+            "profile_group",
+            "field_name",
+            "expected",
+            "actual",
+            "source",
+            "evidence",
+            "status",
+        ]
+        with output.open("w", newline="", encoding="utf-8-sig") as file:
+            writer = csv.DictWriter(file, fieldnames=fields)
+            writer.writeheader()
+            writer.writerows(_serialize_finding(item, fields) for item in findings)
+        return output
+
+
+def _serialize_finding(finding: dict, fields: list[str]) -> dict:
+    row = {field: finding.get(field) for field in fields}
+    for key, value in row.items():
+        if isinstance(value, (dict, list)):
+            row[key] = json.dumps(value, ensure_ascii=False, sort_keys=True)
+    return row
