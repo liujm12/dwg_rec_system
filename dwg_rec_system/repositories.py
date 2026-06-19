@@ -693,6 +693,253 @@ class QuantityRepository:
         return [dict(row) for row in rows]
 
 
+class CostItemRepository:
+    def __init__(self, connection: sqlite3.Connection):
+        self.connection = connection
+
+    def upsert(
+        self,
+        code: str,
+        name: str,
+        class_code: str,
+        unit: str,
+        discipline: str | None = None,
+        spec_pattern: str | None = None,
+        unit_price_material: float = 0,
+        unit_price_labor: float = 0,
+        unit_price_machine: float = 0,
+        currency: str = "CNY",
+        region: str | None = None,
+        version: str | None = None,
+        effective_from: str | None = None,
+        effective_to: str | None = None,
+        description: str | None = None,
+        status: str = "active",
+    ) -> str:
+        cost_id = new_id("cost")
+        self.connection.execute(
+            """
+            INSERT INTO cost_item(
+                id, code, name, discipline, class_code, spec_pattern, unit,
+                unit_price_material, unit_price_labor, unit_price_machine,
+                currency, region, version, effective_from, effective_to,
+                description, status
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(code) DO UPDATE SET
+                name = excluded.name,
+                discipline = excluded.discipline,
+                class_code = excluded.class_code,
+                spec_pattern = excluded.spec_pattern,
+                unit = excluded.unit,
+                unit_price_material = excluded.unit_price_material,
+                unit_price_labor = excluded.unit_price_labor,
+                unit_price_machine = excluded.unit_price_machine,
+                currency = excluded.currency,
+                region = excluded.region,
+                version = excluded.version,
+                effective_from = excluded.effective_from,
+                effective_to = excluded.effective_to,
+                description = excluded.description,
+                status = excluded.status,
+                updated_at = datetime('now')
+            """,
+            (
+                cost_id,
+                code,
+                name,
+                discipline,
+                class_code,
+                spec_pattern,
+                unit,
+                unit_price_material,
+                unit_price_labor,
+                unit_price_machine,
+                currency,
+                region,
+                version,
+                effective_from,
+                effective_to,
+                description,
+                status,
+            ),
+        )
+        row = self.connection.execute(
+            "SELECT id FROM cost_item WHERE code = ?",
+            (code,),
+        ).fetchone()
+        return row["id"]
+
+    def list(
+        self,
+        class_code: str | None = None,
+        discipline: str | None = None,
+        unit: str | None = None,
+        status: str | None = None,
+    ) -> list[dict[str, Any]]:
+        conditions: list[str] = []
+        params: list[Any] = []
+        if class_code:
+            conditions.append("class_code = ?")
+            params.append(class_code)
+        if discipline:
+            conditions.append("discipline = ?")
+            params.append(discipline)
+        if unit:
+            conditions.append("unit = ?")
+            params.append(unit)
+        if status:
+            conditions.append("status = ?")
+            params.append(status)
+
+        where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+        rows = self.connection.execute(
+            f"""
+            SELECT *
+            FROM cost_item
+            {where}
+            ORDER BY class_code, unit, code
+            """,
+            params,
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+    def find_matches(self, class_code: str, unit: str) -> list[dict[str, Any]]:
+        rows = self.connection.execute(
+            """
+            SELECT *
+            FROM cost_item
+            WHERE class_code = ?
+              AND unit = ?
+              AND status = 'active'
+            ORDER BY code
+            """,
+            (class_code, unit),
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+
+class BudgetItemRepository:
+    def __init__(self, connection: sqlite3.Connection):
+        self.connection = connection
+
+    def create(
+        self,
+        item_name: str,
+        unit: str,
+        quantity: float,
+        project_id: str | None = None,
+        drawing_id: str | None = None,
+        quantity_item_id: str | None = None,
+        cost_item_id: str | None = None,
+        class_code: str | None = None,
+        discipline: str | None = None,
+        spec: str | None = None,
+        unit_price_material: float = 0,
+        unit_price_labor: float = 0,
+        unit_price_machine: float = 0,
+        material_cost: float = 0,
+        labor_cost: float = 0,
+        machine_cost: float = 0,
+        total_cost: float = 0,
+        pricing_source: str = "auto",
+        confidence: float = 1.0,
+        evidence: dict[str, Any] | None = None,
+        status: str = "auto",
+    ) -> str:
+        budget_id = new_id("bud")
+        self.connection.execute(
+            """
+            INSERT INTO budget_item(
+                id, project_id, drawing_id, quantity_item_id, cost_item_id,
+                class_code, discipline, item_name, spec, unit, quantity,
+                unit_price_material, unit_price_labor, unit_price_machine,
+                material_cost, labor_cost, machine_cost, total_cost,
+                pricing_source, confidence, evidence_json, status
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                budget_id,
+                project_id,
+                drawing_id,
+                quantity_item_id,
+                cost_item_id,
+                class_code,
+                discipline,
+                item_name,
+                spec,
+                unit,
+                quantity,
+                unit_price_material,
+                unit_price_labor,
+                unit_price_machine,
+                material_cost,
+                labor_cost,
+                machine_cost,
+                total_cost,
+                pricing_source,
+                confidence,
+                json.dumps(evidence, ensure_ascii=False) if evidence else None,
+                status,
+            ),
+        )
+        return budget_id
+
+    def clear_auto(
+        self,
+        project_id: str | None = None,
+        drawing_id: str | None = None,
+    ) -> int:
+        conditions = ["status IN ('auto', 'matched', 'unmatched', 'review')"]
+        params: list[Any] = []
+        if project_id:
+            conditions.append("project_id = ?")
+            params.append(project_id)
+        if drawing_id:
+            conditions.append("drawing_id = ?")
+            params.append(drawing_id)
+        cursor = self.connection.execute(
+            f"DELETE FROM budget_item WHERE {' AND '.join(conditions)}",
+            params,
+        )
+        return cursor.rowcount
+
+    def list(
+        self,
+        project_id: str | None = None,
+        drawing_id: str | None = None,
+        class_code: str | None = None,
+        status: str | None = None,
+    ) -> list[dict[str, Any]]:
+        conditions: list[str] = []
+        params: list[Any] = []
+        if project_id:
+            conditions.append("project_id = ?")
+            params.append(project_id)
+        if drawing_id:
+            conditions.append("drawing_id = ?")
+            params.append(drawing_id)
+        if class_code:
+            conditions.append("class_code = ?")
+            params.append(class_code)
+        if status:
+            conditions.append("status = ?")
+            params.append(status)
+
+        where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+        rows = self.connection.execute(
+            f"""
+            SELECT *
+            FROM budget_item
+            {where}
+            ORDER BY class_code, status, item_name, id
+            """,
+            params,
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+
 class RuleTemplateRepository:
     def __init__(self, connection: sqlite3.Connection):
         self.connection = connection

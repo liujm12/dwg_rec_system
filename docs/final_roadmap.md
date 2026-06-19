@@ -791,18 +791,20 @@ Scope:
 
 ### M6: Budgeting
 
-Status: next.
+Status: complete.
 
 Scope:
 
-- add `cost_item`
-- add `budget_item`
-- add `services/budget.py`
+- `cost_item`
+- `budget_item`
+- `services/budget.py`
 - match quantity items to cost items
-- generate project, drawing, discipline, system, and area summaries
-- export budget CSV or Excel
+- generate matched, unmatched, and reviewable budget rows
+- export budget CSV
 
 ### M7: Installation Guidance
+
+Status: next.
 
 Scope:
 
@@ -880,7 +882,7 @@ The most practical sequence from the current repository state is:
 ```text
 1. Complete quantity generation and quantity CSV export.
 2. Complete data quality checks for missing attributes, geometry, low confidence, and missing relations.
-3. Add cost_item, budget_item, and budget generation.
+3. Complete cost_item, budget_item, and budget generation.
 4. Add install_task and installation guidance.
 5. Add workflow dependency planning.
 6. Add recognition modeling tables before real PDF/DWG parser work.

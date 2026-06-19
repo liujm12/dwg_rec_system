@@ -176,6 +176,90 @@ def create_compat_tables(connection: sqlite3.Connection) -> None:
     connection.execute(
         "CREATE INDEX IF NOT EXISTS idx_quantity_item_group ON quantity_item(group_key)"
     )
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS cost_item (
+            id TEXT PRIMARY KEY,
+            code TEXT NOT NULL UNIQUE,
+            name TEXT NOT NULL,
+            discipline TEXT,
+            class_code TEXT NOT NULL,
+            spec_pattern TEXT,
+            unit TEXT NOT NULL,
+            unit_price_material REAL NOT NULL DEFAULT 0 CHECK (unit_price_material >= 0),
+            unit_price_labor REAL NOT NULL DEFAULT 0 CHECK (unit_price_labor >= 0),
+            unit_price_machine REAL NOT NULL DEFAULT 0 CHECK (unit_price_machine >= 0),
+            currency TEXT NOT NULL DEFAULT 'CNY',
+            region TEXT,
+            version TEXT,
+            effective_from TEXT,
+            effective_to TEXT,
+            description TEXT,
+            status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive')),
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+        """
+    )
+    connection.execute(
+        "CREATE INDEX IF NOT EXISTS idx_cost_item_class_unit ON cost_item(class_code, unit)"
+    )
+    connection.execute(
+        "CREATE INDEX IF NOT EXISTS idx_cost_item_status ON cost_item(status)"
+    )
+    connection.execute(
+        "CREATE INDEX IF NOT EXISTS idx_cost_item_discipline ON cost_item(discipline)"
+    )
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS budget_item (
+            id TEXT PRIMARY KEY,
+            project_id TEXT REFERENCES project(id) ON DELETE SET NULL,
+            drawing_id TEXT REFERENCES drawing(id) ON DELETE SET NULL,
+            quantity_item_id TEXT REFERENCES quantity_item(id) ON DELETE SET NULL,
+            cost_item_id TEXT REFERENCES cost_item(id) ON DELETE SET NULL,
+            class_code TEXT,
+            discipline TEXT,
+            item_name TEXT NOT NULL,
+            spec TEXT,
+            unit TEXT NOT NULL,
+            quantity REAL NOT NULL CHECK (quantity >= 0),
+            unit_price_material REAL NOT NULL DEFAULT 0 CHECK (unit_price_material >= 0),
+            unit_price_labor REAL NOT NULL DEFAULT 0 CHECK (unit_price_labor >= 0),
+            unit_price_machine REAL NOT NULL DEFAULT 0 CHECK (unit_price_machine >= 0),
+            material_cost REAL NOT NULL DEFAULT 0 CHECK (material_cost >= 0),
+            labor_cost REAL NOT NULL DEFAULT 0 CHECK (labor_cost >= 0),
+            machine_cost REAL NOT NULL DEFAULT 0 CHECK (machine_cost >= 0),
+            total_cost REAL NOT NULL DEFAULT 0 CHECK (total_cost >= 0),
+            pricing_source TEXT NOT NULL DEFAULT 'auto',
+            confidence REAL NOT NULL DEFAULT 1.0 CHECK (confidence >= 0 AND confidence <= 1),
+            evidence_json TEXT,
+            status TEXT NOT NULL DEFAULT 'auto' CHECK (
+                status IN ('auto', 'review', 'matched', 'unmatched', 'corrected', 'rejected')
+            ),
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+        """
+    )
+    connection.execute(
+        "CREATE INDEX IF NOT EXISTS idx_budget_item_project ON budget_item(project_id)"
+    )
+    connection.execute(
+        "CREATE INDEX IF NOT EXISTS idx_budget_item_drawing ON budget_item(drawing_id)"
+    )
+    connection.execute(
+        "CREATE INDEX IF NOT EXISTS idx_budget_item_quantity ON budget_item(quantity_item_id)"
+    )
+    connection.execute(
+        "CREATE INDEX IF NOT EXISTS idx_budget_item_cost ON budget_item(cost_item_id)"
+    )
+    connection.execute(
+        "CREATE INDEX IF NOT EXISTS idx_budget_item_class ON budget_item(class_code)"
+    )
+    connection.execute(
+        "CREATE INDEX IF NOT EXISTS idx_budget_item_status ON budget_item(status)"
+    )
 
 
 def add_columns(connection: sqlite3.Connection, table: str, columns: dict[str, str]) -> None:

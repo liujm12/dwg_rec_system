@@ -177,6 +177,87 @@ class CsvExporter:
             writer.writerows(_serialize_finding(item, fields) for item in findings)
         return output
 
+    def export_budget(
+        self,
+        path: str | Path,
+        project_id: str | None = None,
+        drawing_id: str | None = None,
+        status: str | None = None,
+    ) -> Path:
+        output = Path(path)
+        output.parent.mkdir(parents=True, exist_ok=True)
+
+        conditions: list[str] = []
+        params: list[str] = []
+        if project_id:
+            conditions.append("project_id = ?")
+            params.append(project_id)
+        if drawing_id:
+            conditions.append("drawing_id = ?")
+            params.append(drawing_id)
+        if status:
+            conditions.append("status = ?")
+            params.append(status)
+        where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+        rows = self.connection.execute(
+            f"""
+            SELECT
+                id,
+                project_id,
+                drawing_id,
+                quantity_item_id,
+                cost_item_id,
+                class_code,
+                discipline,
+                item_name,
+                spec,
+                unit,
+                quantity,
+                unit_price_material,
+                unit_price_labor,
+                unit_price_machine,
+                material_cost,
+                labor_cost,
+                machine_cost,
+                total_cost,
+                pricing_source,
+                status,
+                confidence
+            FROM budget_item
+            {where}
+            ORDER BY class_code, status, item_name, id
+            """,
+            params,
+        ).fetchall()
+        fields = [
+            "id",
+            "project_id",
+            "drawing_id",
+            "quantity_item_id",
+            "cost_item_id",
+            "class_code",
+            "discipline",
+            "item_name",
+            "spec",
+            "unit",
+            "quantity",
+            "unit_price_material",
+            "unit_price_labor",
+            "unit_price_machine",
+            "material_cost",
+            "labor_cost",
+            "machine_cost",
+            "total_cost",
+            "pricing_source",
+            "status",
+            "confidence",
+        ]
+        with output.open("w", newline="", encoding="utf-8-sig") as file:
+            writer = csv.DictWriter(file, fieldnames=fields)
+            writer.writeheader()
+            writer.writerows(dict(row) for row in rows)
+        return output
+
 
 def _serialize_finding(finding: dict, fields: list[str]) -> dict:
     row = {field: finding.get(field) for field in fields}

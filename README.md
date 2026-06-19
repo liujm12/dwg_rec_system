@@ -13,6 +13,7 @@ CAD/DWG/DXF/parser output
   -> accepted relation
   -> quantity_item
   -> data quality findings
+  -> budget_item
   -> exports and future engineering deliverables
 ```
 
@@ -39,8 +40,9 @@ The long-term roadmap covers multi-discipline equipment recognition, quantity ta
 - Candidate review CLI for listing, accepting, and rejecting relation candidates.
 - Quantity takeoff into durable `quantity_item` rows from engineering profiles, geometry, and attributes.
 - Data quality checks for missing attributes, missing geometry, low confidence, manual-review quantities, missing profiles, and missing accepted relations.
+- Budget generation from `quantity_item` and seeded `cost_item` rows.
 - Spatial queries for nearest, contains, and overlap.
-- CSV export for recognized objects, quantity rows, and data quality findings.
+- CSV export for recognized objects, quantity rows, data quality findings, and budget rows.
 
 ## Quick Start
 
@@ -57,9 +59,13 @@ python -m dwg_rec_system.cli generate-quantities
 python -m dwg_rec_system.cli list-quantities
 python -m dwg_rec_system.cli check-data-quality
 python -m dwg_rec_system.cli list-quality-findings
+python -m dwg_rec_system.cli seed-cost-items --input samples/demo_cost_items.json
+python -m dwg_rec_system.cli generate-budget
+python -m dwg_rec_system.cli list-budget-items
 python -m dwg_rec_system.cli export-csv
 python -m dwg_rec_system.cli export-quantities-csv
 python -m dwg_rec_system.cli export-quality-findings-csv
+python -m dwg_rec_system.cli export-budget-csv
 ```
 
 Expected result:
@@ -70,9 +76,12 @@ Expected result:
 - relation inference creates one accepted candidate and one final relation
 - quantity generation creates auditable `quantity_item` rows from `engineering_class_profiles.json`
 - data quality checks produce reviewable findings before budgeting
+- cost item seeding creates demo BMS price rules
+- budget generation creates auditable `budget_item` rows
 - CSV export writes `exports/objects.csv`
 - quantity CSV export writes `exports/quantities.csv`
 - quality CSV export writes `exports/quality_findings.csv`
+- budget CSV export writes `exports/budget.csv`
 
 ## Important Notes
 
@@ -89,6 +98,8 @@ The current `RelationEngine` accepts rule candidates immediately after creating 
 `generate-quantities` is not a budget generator. It creates auditable quantity rows that later budget services can price. Unsupported formula methods and missing geometry produce `manual_review` quantity rows with evidence explaining the reason.
 
 `check-data-quality` is not a durable review database. Round 5 recomputes findings from current objects, quantities, relations, and engineering profiles, then prints JSON or exports CSV. Budget generation should wait until findings are reviewed or accepted as known risk.
+
+`generate-budget` is deterministic prototype budgeting. It matches active cost items by `class_code` and `unit`, calculates material/labor/machine/total costs, and creates unmatched rows when no cost item can price a quantity. It does not mutate `quantity_item`.
 
 ## CLI Commands
 
@@ -113,11 +124,17 @@ The current `RelationEngine` accepts rule candidates immediately after creating 
 | `check-data-quality [--low-confidence-threshold N]` | Recompute data quality findings and print summary plus findings. |
 | `list-quality-findings [--severity <level>] [--category <category>]` | Recompute and list filtered findings as JSON. |
 | `export-quality-findings-csv [--output <file>]` | Recompute and export findings to CSV. |
+| `seed-cost-items --input <file>` | Seed cost library rows from JSON. |
+| `list-cost-items [--class-code <class>] [--status active]` | List cost library rows as JSON. |
+| `generate-budget [--project-id <id>] [--drawing-id <id>]` | Generate `budget_item` rows from quantity rows and cost items. |
+| `list-budget-items [--status <status>]` | List generated budget rows as JSON. |
+| `export-budget-csv [--output <file>]` | Export budget rows to CSV. |
 
 ## Sample Files
 
 - `samples/demo_parsed.json`: normalized parser output with one control panel and one DDC controller.
 - `samples/demo_rules.json`: one spatial rule that infers `DDC mounted_on CONTROL_PANEL`.
+- `samples/demo_cost_items.json`: demo cost item library for CONTROL_PANEL and DDC quantities.
 - `dwg_rec_system/taxonomy/cad_object_taxonomy.json`: primary CAD object taxonomy and the source for `object_class`.
 - `dwg_rec_system/taxonomy/engineering_class_profiles.json`: engineering profile overlay used by quantity generation and future budget/installation services.
 
@@ -150,5 +167,6 @@ python -m dwg_rec_system.cli init-db
 - `docs/agent_tasks_round_3.md`: completed multi-discipline taxonomy profile task package.
 - `docs/agent_tasks_round_4.md`: completed quantity takeoff task package.
 - `docs/agent_tasks_round_5.md`: completed data quality gate task package.
+- `docs/agent_tasks_round_6.md`: completed budgeting task package.
 - `docs/taxonomy_profile.md`: taxonomy profile shape and usage guide.
 - `docs/final_roadmap.md`: long-term database and module roadmap for multi-discipline budgeting and installation planning.

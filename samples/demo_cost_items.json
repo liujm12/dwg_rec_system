@@ -1,0 +1,35 @@
+{
+  "version": "0.1",
+  "cost_items": [
+    {
+      "code": "BMS-CONTROL-PANEL-SET",
+      "name": "Control panel",
+      "discipline": "BMS",
+      "class_code": "CONTROL_PANEL",
+      "spec_pattern": "",
+      "unit": "set",
+      "unit_price_material": 1000,
+      "unit_price_labor": 300,
+      "unit_price_machine": 50,
+      "currency": "CNY",
+      "region": "DEFAULT",
+      "version": "2026.1",
+      "description": "Demo BMS control panel cost item"
+    },
+    {
+      "code": "BMS-DDC-SET",
+      "name": "DDC controller",
+      "discipline": "BMS",
+      "class_code": "DDC",
+      "spec_pattern": "",
+      "unit": "set",
+      "unit_price_material": 800,
+      "unit_price_labor": 220,
+      "unit_price_machine": 30,
+      "currency": "CNY",
+      "region": "DEFAULT",
+      "version": "2026.1",
+      "description": "Demo BMS DDC controller cost item"
+    }
+  ]
+}

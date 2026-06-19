@@ -17,9 +17,10 @@ The project currently has:
 - Strict taxonomy mode for production-like imports.
 - Quantity takeoff service that generates durable `quantity_item` rows from recognized objects, geometry, attributes, and engineering profiles.
 - Data quality checker that reports missing attributes, missing geometry, low confidence objects, manual-review quantities, missing profiles, and missing accepted relations.
-- CLI commands: `init-db`, `seed-taxonomy`, `import-json`, `seed-rules`, `seed-demo`, `list-objects`, `nearest`, `infer-relations`, `list-candidates`, `accept-candidate`, `reject-candidate`, `generate-quantities`, `list-quantities`, `check-data-quality`, `list-quality-findings`, `export-csv`, `export-quantities-csv`, `export-quality-findings-csv`.
+- Budget generation service that matches `quantity_item` rows to seeded `cost_item` rows and creates auditable `budget_item` rows.
+- CLI commands: `init-db`, `seed-taxonomy`, `import-json`, `seed-rules`, `seed-demo`, `list-objects`, `nearest`, `infer-relations`, `list-candidates`, `accept-candidate`, `reject-candidate`, `generate-quantities`, `list-quantities`, `check-data-quality`, `list-quality-findings`, `seed-cost-items`, `list-cost-items`, `generate-budget`, `list-budget-items`, `export-csv`, `export-quantities-csv`, `export-quality-findings-csv`, `export-budget-csv`.
 - Cleanroom CAD taxonomy JSON v0.2.0 with 164 object classes.
-- Test coverage for import, taxonomy, rule seeding, candidate review, integration, taxonomy structure, baseline relation flow, quantity generation, quantity export, data quality checks, and quality export.
+- Test coverage for import, taxonomy, rule seeding, candidate review, integration, taxonomy structure, baseline relation flow, quantity generation, quantity export, data quality checks, quality export, cost item seeding, budget generation, and budget export.
 
 Milestone 1 and Milestone 2 are complete. The current system can import normalized parser output, validate classes against taxonomy, seed rules, infer one demo relation, review relation candidates, and export CSV.
 
@@ -202,7 +203,7 @@ Success criteria:
 
 ## Milestone 6: Budgeting
 
-Status: NEXT.
+Status: COMPLETE.
 
 Goal:
 
@@ -213,13 +214,15 @@ quantity_item
   -> budget export
 ```
 
-Candidate work:
+Completed:
 
-- Add `cost_item` and `budget_item` through an explicit architecture task.
-- Add `services/budget.py`.
-- Add sample cost item JSON.
-- Match quantity items to cost items by class, discipline, unit, and spec hints.
-- Export budget CSV or Excel.
+- Added `cost_item` and `budget_item`.
+- Added `services/cost_items.py` and `services/budget.py`.
+- Added `samples/demo_cost_items.json`.
+- Match quantity items to active cost items by class and unit with deterministic tie-breaking.
+- Generate matched, unmatched, and review budget rows.
+- Export budget CSV.
+- Expose `seed-cost-items`, `list-cost-items`, `generate-budget`, `list-budget-items`, and `export-budget-csv`.
 
 Success criteria:
 
@@ -229,7 +232,7 @@ Success criteria:
 
 ## Milestone 7: Installation Guidance
 
-Status: PLANNED.
+Status: NEXT.
 
 Goal:
 
@@ -416,6 +419,6 @@ Success criteria:
 
 ## Near-Term Priority
 
-Do budgeting next.
+Do installation guidance next.
 
-The quantity and data quality layers are now in place. The next practical step is to design `cost_item` and `budget_item`, then generate auditable budget rows from reviewed or accepted-risk quantity items. Do not start installation tables, real DWG/DXF/PDF parsing, API, LLM, or PostGIS implementation before the budgeting boundary is defined.
+The quantity, data quality, and budgeting layers are now in place. The next practical step is to design installation templates and generated installation tasks on top of accepted objects, relations, and engineering profiles. Do not start workflow dependency planning, real DWG/DXF/PDF parsing, API, LLM, or PostGIS implementation before the installation guidance boundary is defined.

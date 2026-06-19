@@ -7,6 +7,8 @@ from pathlib import Path
 from .db import database_path, init_database, session
 from .models import CadMetaInput, GeometryInput, ObjectInput, RuleTemplateInput
 from .repositories import (
+    BudgetItemRepository,
+    CostItemRepository,
     DrawingRepository,
     ObjectClassRepository,
     ProjectRepository,
@@ -16,6 +18,8 @@ from .repositories import (
     seed_rules,
 )
 from .importers.normalized_json import NormalizedJsonImporter
+from .services.budget import BudgetGenerator
+from .services.cost_items import CostItemSeeder
 from .services.data_quality import DataQualityChecker, filter_findings
 from .services.exports import CsvExporter
 from .services.object_store import ObjectStore
@@ -241,6 +245,54 @@ def cmd_export_quality_findings_csv(args: argparse.Namespace) -> None:
     print(f"exported: {output}")
 
 
+def cmd_seed_cost_items(args: argparse.Namespace) -> None:
+    with session() as connection:
+        summary = CostItemSeeder(connection).seed_file(args.input)
+    print(json.dumps(summary, ensure_ascii=False, indent=2))
+
+
+def cmd_list_cost_items(args: argparse.Namespace) -> None:
+    with session() as connection:
+        rows = CostItemRepository(connection).list(
+            class_code=args.class_code,
+            discipline=args.discipline,
+            unit=args.unit,
+            status=args.status,
+        )
+    print(json.dumps(rows, ensure_ascii=False, indent=2))
+
+
+def cmd_generate_budget(args: argparse.Namespace) -> None:
+    with session() as connection:
+        summary = BudgetGenerator(connection).generate(
+            project_id=args.project_id,
+            drawing_id=args.drawing_id,
+        )
+    print(json.dumps(summary, ensure_ascii=False, indent=2))
+
+
+def cmd_list_budget_items(args: argparse.Namespace) -> None:
+    with session() as connection:
+        rows = BudgetItemRepository(connection).list(
+            project_id=args.project_id,
+            drawing_id=args.drawing_id,
+            class_code=args.class_code,
+            status=args.status,
+        )
+    print(json.dumps(rows, ensure_ascii=False, indent=2))
+
+
+def cmd_export_budget_csv(args: argparse.Namespace) -> None:
+    with session() as connection:
+        output = CsvExporter(connection).export_budget(
+            args.output,
+            project_id=args.project_id,
+            drawing_id=args.drawing_id,
+            status=args.status,
+        )
+    print(f"exported: {output}")
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="CAD drawing recognition system database tools.")
     parser.add_argument("--db", default=None, help="Reserved for future use. Use DWG_REC_DB for now.")
@@ -376,6 +428,48 @@ def build_parser() -> argparse.ArgumentParser:
         ],
     )
     export_quality.set_defaults(func=cmd_export_quality_findings_csv)
+
+    seed_cost_items = subparsers.add_parser(
+        "seed-cost-items",
+        help="Seed cost_item rows from JSON.",
+    )
+    seed_cost_items.add_argument("--input", required=True, help="Path to cost item JSON file.")
+    seed_cost_items.set_defaults(func=cmd_seed_cost_items)
+
+    list_cost_items = subparsers.add_parser("list-cost-items", help="List cost library items.")
+    list_cost_items.add_argument("--class-code")
+    list_cost_items.add_argument("--discipline")
+    list_cost_items.add_argument("--unit")
+    list_cost_items.add_argument("--status", choices=["active", "inactive"])
+    list_cost_items.set_defaults(func=cmd_list_cost_items)
+
+    generate_budget = subparsers.add_parser(
+        "generate-budget",
+        help="Generate budget_item rows from quantity_item and cost_item.",
+    )
+    generate_budget.add_argument("--project-id")
+    generate_budget.add_argument("--drawing-id")
+    generate_budget.set_defaults(func=cmd_generate_budget)
+
+    list_budget = subparsers.add_parser("list-budget-items", help="List generated budget rows.")
+    list_budget.add_argument("--project-id")
+    list_budget.add_argument("--drawing-id")
+    list_budget.add_argument("--class-code")
+    list_budget.add_argument(
+        "--status",
+        choices=["auto", "review", "matched", "unmatched", "corrected", "rejected"],
+    )
+    list_budget.set_defaults(func=cmd_list_budget_items)
+
+    export_budget = subparsers.add_parser("export-budget-csv", help="Export budget rows as CSV.")
+    export_budget.add_argument("--output", default=str(Path("exports/budget.csv")))
+    export_budget.add_argument("--project-id")
+    export_budget.add_argument("--drawing-id")
+    export_budget.add_argument(
+        "--status",
+        choices=["auto", "review", "matched", "unmatched", "corrected", "rejected"],
+    )
+    export_budget.set_defaults(func=cmd_export_budget_csv)
 
     return parser
 
