@@ -15,6 +15,7 @@ CAD/DWG/DXF/parser output
   -> data quality findings
   -> budget_item
   -> install_task + install_dependency + install_instruction
+  -> workflow_plan + workflow_step + workflow_issue
   -> exports and future engineering deliverables
 ```
 
@@ -43,8 +44,9 @@ The long-term roadmap covers multi-discipline equipment recognition, quantity ta
 - Data quality checks for missing attributes, missing geometry, low confidence, manual-review quantities, missing profiles, and missing accepted relations.
 - Budget generation from `quantity_item` and seeded `cost_item` rows.
 - Installation guidance from accepted objects, accepted relations, and `engineering_class_profiles.json` installation profiles.
+- Workflow planning from installation tasks and dependencies into deterministic, reviewable workflow steps and issues.
 - Spatial queries for nearest, contains, and overlap.
-- CSV export for recognized objects, quantity rows, data quality findings, budget rows, and installation tasks.
+- CSV export for recognized objects, quantity rows, data quality findings, budget rows, installation tasks, and workflow plans.
 
 ## Quick Start
 
@@ -70,11 +72,16 @@ python -m dwg_rec_system.cli generate-install-instructions
 python -m dwg_rec_system.cli list-install-tasks
 python -m dwg_rec_system.cli list-install-dependencies
 python -m dwg_rec_system.cli list-install-instructions
+python -m dwg_rec_system.cli generate-workflow-plan
+python -m dwg_rec_system.cli list-workflow-plans
+python -m dwg_rec_system.cli list-workflow-steps
+python -m dwg_rec_system.cli list-workflow-issues
 python -m dwg_rec_system.cli export-csv
 python -m dwg_rec_system.cli export-quantities-csv
 python -m dwg_rec_system.cli export-quality-findings-csv
 python -m dwg_rec_system.cli export-budget-csv
 python -m dwg_rec_system.cli export-install-tasks-csv
+python -m dwg_rec_system.cli export-workflow-plan-csv
 ```
 
 Expected result:
@@ -90,11 +97,13 @@ Expected result:
 - installation task generation creates auditable `install_task` rows from profiled objects
 - accepted relations generate simple `install_dependency` hints when both sides have tasks
 - installation instruction generation creates deterministic template text in `install_instruction`
+- workflow planning creates `workflow_plan`, ordered `workflow_step` rows, and reviewable `workflow_issue` rows
 - CSV export writes `exports/objects.csv`
 - quantity CSV export writes `exports/quantities.csv`
 - quality CSV export writes `exports/quality_findings.csv`
 - budget CSV export writes `exports/budget.csv`
 - installation task CSV export writes `exports/install_tasks.csv`
+- workflow CSV export writes `exports/workflow_plan.csv`
 
 ## Important Notes
 
@@ -115,6 +124,8 @@ The current `RelationEngine` accepts rule candidates immediately after creating 
 `generate-budget` is deterministic prototype budgeting. It matches active cost items by `class_code` and `unit`, calculates material/labor/machine/total costs, and creates unmatched rows when no cost item can price a quantity. It does not mutate `quantity_item`.
 
 `generate-install-tasks` is deterministic installation guidance, not workflow planning. It creates one project-specific `install_task` for each active object with an installation profile. `generate-install-dependencies` uses only accepted `relation` rows for simple dependency hints. `generate-install-instructions` creates template text from structured task evidence; it is not LLM-generated.
+
+`generate-workflow-plan` is deterministic workflow planning, not a construction schedule. It topologically orders installation tasks from `install_dependency`, records review/blocking issues, and writes ordered `workflow_step` rows. It does not calculate dates, critical path, manpower, shifts, or optimized crew/resource allocation.
 
 ## CLI Commands
 
@@ -151,6 +162,11 @@ The current `RelationEngine` accepts rule candidates immediately after creating 
 | `list-install-dependencies [--status <status>]` | List installation dependencies as JSON. |
 | `list-install-instructions [--task-id <id>]` | List generated installation instructions as JSON. |
 | `export-install-tasks-csv [--output <file>]` | Export installation tasks to CSV. |
+| `generate-workflow-plan [--project-id <id>] [--drawing-id <id>]` | Generate a deterministic workflow plan from installation tasks and dependencies. |
+| `list-workflow-plans [--status <status>]` | List workflow plans as JSON. |
+| `list-workflow-steps [--plan-id <id>] [--status <status>]` | List ordered workflow steps as JSON. |
+| `list-workflow-issues [--plan-id <id>] [--severity <level>]` | List workflow planning issues as JSON. |
+| `export-workflow-plan-csv [--plan-id <id>] [--output <file>]` | Export ordered workflow steps to CSV. |
 
 ## Sample Files
 
@@ -191,5 +207,6 @@ python -m dwg_rec_system.cli init-db
 - `docs/agent_tasks_round_5.md`: completed data quality gate task package.
 - `docs/agent_tasks_round_6.md`: completed budgeting task package.
 - `docs/agent_tasks_round_7.md`: completed installation guidance task package.
+- `docs/agent_tasks_round_8.md`: completed workflow planning task package.
 - `docs/taxonomy_profile.md`: taxonomy profile shape and usage guide.
 - `docs/final_roadmap.md`: long-term database and module roadmap for multi-discipline budgeting and installation planning.

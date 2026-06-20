@@ -21,6 +21,7 @@ CAD/DWG/DXF/PDF/image source
   -> quantity_item
   -> budget_item
   -> install_task + install_dependency
+  -> workflow_plan + workflow_step + workflow_issue
   -> reports, budgets, installation instructions, workflow plans
 ```
 
@@ -386,6 +387,85 @@ cad_object + relation + taxonomy installation profile
 ```
 
 Round 7 installation guidance is not a schedule optimizer. It records object-derived work, simple relation-based dependency evidence, and deterministic instruction text. Workflow graph planning and recommended sequencing belong to the next milestone.
+
+### 3.7 Workflow Planning Tables
+
+Workflow planning should remain separate from installation guidance. Installation tasks describe what needs to be installed; workflow plans describe a generated review sequence for a specific scope.
+
+Round 8 durable tables:
+
+```text
+workflow_plan
+workflow_step
+workflow_issue
+```
+
+`workflow_plan` stores one generated planning run:
+
+```text
+workflow_plan
+- id
+- project_id
+- drawing_id
+- name
+- scope_json
+- generator
+- generator_version
+- status
+- summary_json
+- created_at
+- updated_at
+```
+
+`workflow_step` stores deterministic ordered rows inside a plan:
+
+```text
+workflow_step
+- id
+- plan_id
+- task_id
+- sequence_no
+- sequence_group
+- discipline
+- work_package
+- location
+- system_code
+- dependency_count
+- blocked_by_count
+- status
+- evidence_json
+- created_at
+- updated_at
+```
+
+`workflow_issue` stores planning problems for review:
+
+```text
+workflow_issue
+- id
+- plan_id
+- task_id
+- dependency_id
+- severity
+- category
+- code
+- message
+- evidence_json
+- status
+- created_at
+- updated_at
+```
+
+Workflow flow:
+
+```text
+install_task + install_dependency
+  -> workflow_plan
+  -> workflow_step
+  -> workflow_issue
+```
+
+Round 8 workflow planning is not a Gantt chart, calendar schedule, critical-path optimizer, or crew/resource allocation system. It records a deterministic dependency-based sequence and the issues that make that sequence unsafe or review-worthy.
 
 ## 4. Module Roadmap
 
@@ -810,27 +890,22 @@ Scope:
 
 ### M8: Workflow Planning
 
+Status: complete.
+
 Scope:
 
-- group installation tasks by discipline, area, system, and dependency
-- produce a simple dependency graph
-- detect missing prerequisites
-- generate a recommended installation sequence
-
-Recommended first sequence model:
-
-```text
-building / structure conditions
-  -> supports and hangers
-  -> main ducts / pipes / trays
-  -> equipment placement
-  -> branch connections / cables / controls
-  -> insulation / labels
-  -> single-equipment commissioning
-  -> system commissioning
-```
+- add `workflow_plan`, `workflow_step`, and `workflow_issue`
+- group installation tasks by discipline, work package, location, system, and dependency evidence
+- produce a simple dependency graph from `install_dependency`
+- topologically order tasks with deterministic tie-breaking
+- detect review dependencies, review tasks, missing scope, and cycles as workflow issues
+- export ordered workflow steps to CSV
 
 ### M9: Recognition Modeling Layer
+
+Status: next.
+
+Scope:
 
 Scope:
 
@@ -878,7 +953,7 @@ The most practical sequence from the current repository state is:
 2. Complete data quality checks for missing attributes, geometry, low confidence, and missing relations.
 3. Complete cost_item, budget_item, and budget generation.
 4. Complete install_task and installation guidance.
-5. Add workflow dependency planning.
+5. Complete workflow dependency planning.
 6. Add recognition modeling tables before real PDF/DWG parser work.
 7. Connect real DWG/DXF/PDF parser adapters.
 8. Add API and UI.

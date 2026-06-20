@@ -19,9 +19,10 @@ The project currently has:
 - Data quality checker that reports missing attributes, missing geometry, low confidence objects, manual-review quantities, missing profiles, and missing accepted relations.
 - Budget generation service that matches `quantity_item` rows to seeded `cost_item` rows and creates auditable `budget_item` rows.
 - Installation guidance service that generates `install_task`, `install_dependency`, and deterministic `install_instruction` rows from accepted objects, accepted relations, and engineering installation profiles.
-- CLI commands: `init-db`, `seed-taxonomy`, `import-json`, `seed-rules`, `seed-demo`, `list-objects`, `nearest`, `infer-relations`, `list-candidates`, `accept-candidate`, `reject-candidate`, `generate-quantities`, `list-quantities`, `check-data-quality`, `list-quality-findings`, `seed-cost-items`, `list-cost-items`, `generate-budget`, `list-budget-items`, `generate-install-tasks`, `generate-install-dependencies`, `generate-install-instructions`, `list-install-tasks`, `list-install-dependencies`, `list-install-instructions`, `export-csv`, `export-quantities-csv`, `export-quality-findings-csv`, `export-budget-csv`, `export-install-tasks-csv`.
+- Workflow planning service that generates `workflow_plan`, ordered `workflow_step`, and reviewable `workflow_issue` rows from installation tasks and dependencies.
+- CLI commands: `init-db`, `seed-taxonomy`, `import-json`, `seed-rules`, `seed-demo`, `list-objects`, `nearest`, `infer-relations`, `list-candidates`, `accept-candidate`, `reject-candidate`, `generate-quantities`, `list-quantities`, `check-data-quality`, `list-quality-findings`, `seed-cost-items`, `list-cost-items`, `generate-budget`, `list-budget-items`, `generate-install-tasks`, `generate-install-dependencies`, `generate-install-instructions`, `list-install-tasks`, `list-install-dependencies`, `list-install-instructions`, `generate-workflow-plan`, `list-workflow-plans`, `list-workflow-steps`, `list-workflow-issues`, `export-csv`, `export-quantities-csv`, `export-quality-findings-csv`, `export-budget-csv`, `export-install-tasks-csv`, `export-workflow-plan-csv`.
 - Cleanroom CAD taxonomy JSON v0.2.0 with 164 object classes.
-- Test coverage for import, taxonomy, rule seeding, candidate review, integration, taxonomy structure, baseline relation flow, quantity generation, quantity export, data quality checks, quality export, cost item seeding, budget generation, budget export, installation task generation, installation dependency generation, installation instructions, and installation task export.
+- Test coverage for import, taxonomy, rule seeding, candidate review, integration, taxonomy structure, baseline relation flow, quantity generation, quantity export, data quality checks, quality export, cost item seeding, budget generation, budget export, installation task generation, installation dependency generation, installation instructions, installation task export, workflow graph generation, workflow planning, workflow issues, and workflow export.
 
 Milestone 1 and Milestone 2 are complete. The current system can import normalized parser output, validate classes against taxonomy, seed rules, infer one demo relation, review relation candidates, and export CSV.
 
@@ -262,7 +263,7 @@ Success criteria:
 
 ## Milestone 8: Workflow Planning
 
-Status: NEXT.
+Status: COMPLETE.
 
 Goal:
 
@@ -272,12 +273,16 @@ install_task + install_dependency
   -> recommended installation sequence
 ```
 
-Candidate work:
+Completed:
 
-- Group installation tasks by discipline, area, system, and dependency.
-- Produce a simple dependency graph from existing installation tasks.
-- Detect missing prerequisites and blocked tasks.
-- Generate a recommended installation sequence without changing object recognition data.
+- Added `workflow_plan`, `workflow_step`, and `workflow_issue`.
+- Added repository support for workflow plans, steps, issues, and superseding previous generated plans.
+- Added `services/workflow.py`.
+- Build deterministic workflow graphs from installation tasks and dependencies.
+- Topologically order installation tasks with deterministic tie-breaking.
+- Detect review dependencies, task review status, missing scope, and dependency cycles as workflow issues.
+- Export ordered workflow steps to CSV.
+- Expose `generate-workflow-plan`, `list-workflow-plans`, `list-workflow-steps`, `list-workflow-issues`, and `export-workflow-plan-csv`.
 
 Success criteria:
 
@@ -287,7 +292,7 @@ Success criteria:
 
 ## Milestone 9: Recognition Modeling Layer
 
-Status: PLANNED.
+Status: NEXT.
 
 Goal:
 
@@ -447,6 +452,6 @@ Success criteria:
 
 ## Near-Term Priority
 
-Do workflow planning next.
+Do recognition modeling next.
 
-The quantity, data quality, budgeting, and installation guidance layers are now in place. The next practical step is to turn generated installation tasks and simple dependencies into a reviewable workflow graph and recommended sequence. Do not start real DWG/DXF/PDF parsing, API, LLM, or PostGIS implementation before the workflow planning boundary is defined.
+The quantity, data quality, budgeting, installation guidance, and workflow planning layers are now in place. The next practical step is to design recognition evidence tables before real PDF/DWG/DXF parser work. Do not start real parser adapters, API, LLM, or PostGIS implementation before the recognition modeling boundary is defined.

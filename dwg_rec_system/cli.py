@@ -18,6 +18,9 @@ from .repositories import (
     QuantityRepository,
     RelationCandidateRepository,
     RelationRepository,
+    WorkflowIssueRepository,
+    WorkflowPlanRepository,
+    WorkflowStepRepository,
     seed_rules,
 )
 from .importers.normalized_json import NormalizedJsonImporter
@@ -36,6 +39,7 @@ from .services.relation_engine import RelationEngine
 from .services.rules import RuleTemplateSeeder
 from .services.spatial_index import SpatialIndex
 from .services.taxonomy import TaxonomySeeder
+from .services.workflow import WorkflowPlanGenerator
 
 
 def cmd_init_db(_: argparse.Namespace) -> None:
@@ -374,6 +378,61 @@ def cmd_export_install_tasks_csv(args: argparse.Namespace) -> None:
     print(f"exported: {output}")
 
 
+def cmd_generate_workflow_plan(args: argparse.Namespace) -> None:
+    with session() as connection:
+        summary = WorkflowPlanGenerator(connection).generate(
+            project_id=args.project_id,
+            drawing_id=args.drawing_id,
+            discipline=args.discipline,
+            work_package=args.work_package,
+            location=args.location,
+            system_code=args.system_code,
+            name=args.name,
+        )
+    print(json.dumps(summary, ensure_ascii=False, indent=2))
+
+
+def cmd_list_workflow_plans(args: argparse.Namespace) -> None:
+    with session() as connection:
+        rows = WorkflowPlanRepository(connection).list(
+            project_id=args.project_id,
+            drawing_id=args.drawing_id,
+            status=args.status,
+        )
+    print(json.dumps(rows, ensure_ascii=False, indent=2))
+
+
+def cmd_list_workflow_steps(args: argparse.Namespace) -> None:
+    with session() as connection:
+        rows = WorkflowStepRepository(connection).list(
+            plan_id=args.plan_id,
+            task_id=args.task_id,
+            status=args.status,
+        )
+    print(json.dumps(rows, ensure_ascii=False, indent=2))
+
+
+def cmd_list_workflow_issues(args: argparse.Namespace) -> None:
+    with session() as connection:
+        rows = WorkflowIssueRepository(connection).list(
+            plan_id=args.plan_id,
+            task_id=args.task_id,
+            severity=args.severity,
+            category=args.category,
+            status=args.status,
+        )
+    print(json.dumps(rows, ensure_ascii=False, indent=2))
+
+
+def cmd_export_workflow_plan_csv(args: argparse.Namespace) -> None:
+    with session() as connection:
+        output = CsvExporter(connection).export_workflow_plan(
+            args.output,
+            plan_id=args.plan_id,
+        )
+    print(f"exported: {output}")
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="CAD drawing recognition system database tools.")
     parser.add_argument("--db", default=None, help="Reserved for future use. Use DWG_REC_DB for now.")
@@ -621,6 +680,76 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["auto", "review", "ready", "blocked", "corrected", "rejected", "done"],
     )
     export_install_tasks.set_defaults(func=cmd_export_install_tasks_csv)
+
+    generate_workflow = subparsers.add_parser(
+        "generate-workflow-plan",
+        help="Generate a deterministic workflow plan from install tasks and dependencies.",
+    )
+    generate_workflow.add_argument("--project-id")
+    generate_workflow.add_argument("--drawing-id")
+    generate_workflow.add_argument("--discipline")
+    generate_workflow.add_argument("--work-package")
+    generate_workflow.add_argument("--location")
+    generate_workflow.add_argument("--system-code")
+    generate_workflow.add_argument("--name")
+    generate_workflow.set_defaults(func=cmd_generate_workflow_plan)
+
+    list_workflow_plans = subparsers.add_parser(
+        "list-workflow-plans",
+        help="List generated workflow plans.",
+    )
+    list_workflow_plans.add_argument("--project-id")
+    list_workflow_plans.add_argument("--drawing-id")
+    list_workflow_plans.add_argument(
+        "--status",
+        choices=["draft", "review", "ready", "superseded", "rejected"],
+    )
+    list_workflow_plans.set_defaults(func=cmd_list_workflow_plans)
+
+    list_workflow_steps = subparsers.add_parser(
+        "list-workflow-steps",
+        help="List generated workflow steps.",
+    )
+    list_workflow_steps.add_argument("--plan-id")
+    list_workflow_steps.add_argument("--task-id")
+    list_workflow_steps.add_argument(
+        "--status",
+        choices=["planned", "review", "blocked", "unplanned", "done", "rejected"],
+    )
+    list_workflow_steps.set_defaults(func=cmd_list_workflow_steps)
+
+    list_workflow_issues = subparsers.add_parser(
+        "list-workflow-issues",
+        help="List workflow planning issues.",
+    )
+    list_workflow_issues.add_argument("--plan-id")
+    list_workflow_issues.add_argument("--task-id")
+    list_workflow_issues.add_argument("--severity", choices=["error", "warning", "info"])
+    list_workflow_issues.add_argument(
+        "--category",
+        choices=[
+            "cycle",
+            "missing_dependency_task",
+            "review_dependency",
+            "blocked_predecessor",
+            "unplanned_task",
+            "task_needs_review",
+            "missing_scope",
+        ],
+    )
+    list_workflow_issues.add_argument(
+        "--status",
+        choices=["open", "accepted", "resolved", "rejected"],
+    )
+    list_workflow_issues.set_defaults(func=cmd_list_workflow_issues)
+
+    export_workflow = subparsers.add_parser(
+        "export-workflow-plan-csv",
+        help="Export ordered workflow steps as CSV.",
+    )
+    export_workflow.add_argument("--output", default=str(Path("exports/workflow_plan.csv")))
+    export_workflow.add_argument("--plan-id")
+    export_workflow.set_defaults(func=cmd_export_workflow_plan_csv)
 
     return parser
 

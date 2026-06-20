@@ -327,6 +327,64 @@ class CsvExporter:
             writer.writerows(dict(row) for row in rows)
         return output
 
+    def export_workflow_plan(
+        self,
+        path: str | Path,
+        plan_id: str | None = None,
+    ) -> Path:
+        output = Path(path)
+        output.parent.mkdir(parents=True, exist_ok=True)
+
+        conditions: list[str] = []
+        params: list[str] = []
+        if plan_id:
+            conditions.append("s.plan_id = ?")
+            params.append(plan_id)
+        where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+        rows = self.connection.execute(
+            f"""
+            SELECT
+                s.plan_id,
+                s.sequence_no,
+                s.sequence_group,
+                s.task_id,
+                t.task_name,
+                t.class_code,
+                s.discipline,
+                s.work_package,
+                s.location,
+                s.system_code,
+                s.dependency_count,
+                s.blocked_by_count,
+                s.status
+            FROM workflow_step s
+            LEFT JOIN install_task t ON t.id = s.task_id
+            {where}
+            ORDER BY s.plan_id, s.sequence_no, s.id
+            """,
+            params,
+        ).fetchall()
+        fields = [
+            "plan_id",
+            "sequence_no",
+            "sequence_group",
+            "task_id",
+            "task_name",
+            "class_code",
+            "discipline",
+            "work_package",
+            "location",
+            "system_code",
+            "dependency_count",
+            "blocked_by_count",
+            "status",
+        ]
+        with output.open("w", newline="", encoding="utf-8-sig") as file:
+            writer = csv.DictWriter(file, fieldnames=fields)
+            writer.writeheader()
+            writer.writerows(dict(row) for row in rows)
+        return output
+
 
 def _serialize_finding(finding: dict, fields: list[str]) -> dict:
     row = {field: finding.get(field) for field in fields}

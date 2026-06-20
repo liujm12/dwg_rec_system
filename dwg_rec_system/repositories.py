@@ -1236,6 +1236,300 @@ class InstallInstructionRepository:
         return [dict(row) for row in rows]
 
 
+class WorkflowPlanRepository:
+    def __init__(self, connection: sqlite3.Connection):
+        self.connection = connection
+
+    def create(
+        self,
+        name: str,
+        project_id: str | None = None,
+        drawing_id: str | None = None,
+        scope: dict[str, Any] | None = None,
+        generator: str = "workflow_plan_generator",
+        generator_version: str = "0.1",
+        status: str = "review",
+        summary: dict[str, Any] | None = None,
+    ) -> str:
+        plan_id = new_id("wplan")
+        self.connection.execute(
+            """
+            INSERT INTO workflow_plan(
+                id, project_id, drawing_id, name, scope_json, generator,
+                generator_version, status, summary_json
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                plan_id,
+                project_id,
+                drawing_id,
+                name,
+                json.dumps(scope, ensure_ascii=False, sort_keys=True) if scope else None,
+                generator,
+                generator_version,
+                status,
+                json.dumps(summary, ensure_ascii=False, sort_keys=True) if summary else None,
+            ),
+        )
+        return plan_id
+
+    def mark_superseded(
+        self,
+        project_id: str | None = None,
+        drawing_id: str | None = None,
+        scope: dict[str, Any] | None = None,
+    ) -> int:
+        conditions = [
+            "generator = 'workflow_plan_generator'",
+            "status IN ('draft', 'review', 'ready')",
+        ]
+        params: list[Any] = []
+        if project_id:
+            conditions.append("project_id = ?")
+            params.append(project_id)
+        else:
+            conditions.append("project_id IS NULL")
+        if drawing_id:
+            conditions.append("drawing_id = ?")
+            params.append(drawing_id)
+        else:
+            conditions.append("drawing_id IS NULL")
+        if scope is not None:
+            conditions.append("scope_json = ?")
+            params.append(json.dumps(scope, ensure_ascii=False, sort_keys=True))
+        cursor = self.connection.execute(
+            f"""
+            UPDATE workflow_plan
+            SET status = 'superseded', updated_at = datetime('now')
+            WHERE {' AND '.join(conditions)}
+            """,
+            params,
+        )
+        return cursor.rowcount
+
+    def update_summary(self, plan_id: str, summary: dict[str, Any], status: str) -> None:
+        self.connection.execute(
+            """
+            UPDATE workflow_plan
+            SET summary_json = ?, status = ?, updated_at = datetime('now')
+            WHERE id = ?
+            """,
+            (json.dumps(summary, ensure_ascii=False, sort_keys=True), status, plan_id),
+        )
+
+    def list(
+        self,
+        project_id: str | None = None,
+        drawing_id: str | None = None,
+        status: str | None = None,
+    ) -> list[dict[str, Any]]:
+        conditions: list[str] = []
+        params: list[Any] = []
+        if project_id:
+            conditions.append("project_id = ?")
+            params.append(project_id)
+        if drawing_id:
+            conditions.append("drawing_id = ?")
+            params.append(drawing_id)
+        if status:
+            conditions.append("status = ?")
+            params.append(status)
+        where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+        rows = self.connection.execute(
+            f"""
+            SELECT *
+            FROM workflow_plan
+            {where}
+            ORDER BY created_at DESC, id DESC
+            """,
+            params,
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+
+class WorkflowStepRepository:
+    def __init__(self, connection: sqlite3.Connection):
+        self.connection = connection
+
+    def create(
+        self,
+        plan_id: str,
+        task_id: str,
+        sequence_no: int,
+        sequence_group: str | None = None,
+        discipline: str | None = None,
+        work_package: str | None = None,
+        location: str | None = None,
+        system_code: str | None = None,
+        dependency_count: int = 0,
+        blocked_by_count: int = 0,
+        status: str = "planned",
+        evidence: dict[str, Any] | None = None,
+    ) -> str:
+        step_id = new_id("wstep")
+        self.connection.execute(
+            """
+            INSERT INTO workflow_step(
+                id, plan_id, task_id, sequence_no, sequence_group, discipline,
+                work_package, location, system_code, dependency_count,
+                blocked_by_count, status, evidence_json
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                step_id,
+                plan_id,
+                task_id,
+                sequence_no,
+                sequence_group,
+                discipline,
+                work_package,
+                location,
+                system_code,
+                dependency_count,
+                blocked_by_count,
+                status,
+                json.dumps(evidence, ensure_ascii=False, sort_keys=True) if evidence else None,
+            ),
+        )
+        return step_id
+
+    def clear_for_plan(self, plan_id: str) -> int:
+        cursor = self.connection.execute(
+            "DELETE FROM workflow_step WHERE plan_id = ?",
+            (plan_id,),
+        )
+        return cursor.rowcount
+
+    def list(
+        self,
+        plan_id: str | None = None,
+        task_id: str | None = None,
+        status: str | None = None,
+    ) -> list[dict[str, Any]]:
+        conditions: list[str] = []
+        params: list[Any] = []
+        if plan_id:
+            conditions.append("s.plan_id = ?")
+            params.append(plan_id)
+        if task_id:
+            conditions.append("s.task_id = ?")
+            params.append(task_id)
+        if status:
+            conditions.append("s.status = ?")
+            params.append(status)
+        where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+        rows = self.connection.execute(
+            f"""
+            SELECT
+                s.*,
+                t.task_name,
+                t.class_code,
+                t.confidence AS task_confidence
+            FROM workflow_step s
+            LEFT JOIN install_task t ON t.id = s.task_id
+            {where}
+            ORDER BY s.plan_id, s.sequence_no, s.id
+            """,
+            params,
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+
+class WorkflowIssueRepository:
+    def __init__(self, connection: sqlite3.Connection):
+        self.connection = connection
+
+    def create(
+        self,
+        plan_id: str,
+        severity: str,
+        category: str,
+        code: str,
+        message: str,
+        task_id: str | None = None,
+        dependency_id: str | None = None,
+        evidence: dict[str, Any] | None = None,
+        status: str = "open",
+    ) -> str:
+        issue_id = new_id("wiss")
+        self.connection.execute(
+            """
+            INSERT INTO workflow_issue(
+                id, plan_id, task_id, dependency_id, severity, category,
+                code, message, evidence_json, status
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                issue_id,
+                plan_id,
+                task_id,
+                dependency_id,
+                severity,
+                category,
+                code,
+                message,
+                json.dumps(evidence, ensure_ascii=False, sort_keys=True) if evidence else None,
+                status,
+            ),
+        )
+        return issue_id
+
+    def clear_for_plan(self, plan_id: str) -> int:
+        cursor = self.connection.execute(
+            "DELETE FROM workflow_issue WHERE plan_id = ?",
+            (plan_id,),
+        )
+        return cursor.rowcount
+
+    def list(
+        self,
+        plan_id: str | None = None,
+        task_id: str | None = None,
+        severity: str | None = None,
+        category: str | None = None,
+        status: str | None = None,
+    ) -> list[dict[str, Any]]:
+        conditions: list[str] = []
+        params: list[Any] = []
+        if plan_id:
+            conditions.append("plan_id = ?")
+            params.append(plan_id)
+        if task_id:
+            conditions.append("task_id = ?")
+            params.append(task_id)
+        if severity:
+            conditions.append("severity = ?")
+            params.append(severity)
+        if category:
+            conditions.append("category = ?")
+            params.append(category)
+        if status:
+            conditions.append("status = ?")
+            params.append(status)
+        where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+        rows = self.connection.execute(
+            f"""
+            SELECT *
+            FROM workflow_issue
+            {where}
+            ORDER BY
+                CASE severity
+                    WHEN 'error' THEN 1
+                    WHEN 'warning' THEN 2
+                    ELSE 3
+                END,
+                category,
+                task_id,
+                id
+            """,
+            params,
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+
 class RuleTemplateRepository:
     def __init__(self, connection: sqlite3.Connection):
         self.connection = connection

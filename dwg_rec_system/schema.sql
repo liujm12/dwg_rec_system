@@ -386,6 +386,86 @@ CREATE TABLE IF NOT EXISTS install_instruction (
 CREATE INDEX IF NOT EXISTS idx_install_instruction_task
     ON install_instruction(task_id);
 
+CREATE TABLE IF NOT EXISTS workflow_plan (
+    id TEXT PRIMARY KEY,
+    project_id TEXT REFERENCES project(id) ON DELETE SET NULL,
+    drawing_id TEXT REFERENCES drawing(id) ON DELETE SET NULL,
+    name TEXT NOT NULL,
+    scope_json TEXT,
+    generator TEXT NOT NULL DEFAULT 'workflow_plan_generator',
+    generator_version TEXT NOT NULL DEFAULT '0.1',
+    status TEXT NOT NULL DEFAULT 'review' CHECK (
+        status IN ('draft', 'review', 'ready', 'superseded', 'rejected')
+    ),
+    summary_json TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_workflow_plan_project ON workflow_plan(project_id);
+CREATE INDEX IF NOT EXISTS idx_workflow_plan_drawing ON workflow_plan(drawing_id);
+CREATE INDEX IF NOT EXISTS idx_workflow_plan_status ON workflow_plan(status);
+
+CREATE TABLE IF NOT EXISTS workflow_step (
+    id TEXT PRIMARY KEY,
+    plan_id TEXT NOT NULL REFERENCES workflow_plan(id) ON DELETE CASCADE,
+    task_id TEXT NOT NULL REFERENCES install_task(id) ON DELETE CASCADE,
+    sequence_no INTEGER NOT NULL,
+    sequence_group TEXT,
+    discipline TEXT,
+    work_package TEXT,
+    location TEXT,
+    system_code TEXT,
+    dependency_count INTEGER NOT NULL DEFAULT 0,
+    blocked_by_count INTEGER NOT NULL DEFAULT 0,
+    status TEXT NOT NULL DEFAULT 'planned' CHECK (
+        status IN ('planned', 'review', 'blocked', 'unplanned', 'done', 'rejected')
+    ),
+    evidence_json TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE (plan_id, task_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_workflow_step_plan ON workflow_step(plan_id);
+CREATE INDEX IF NOT EXISTS idx_workflow_step_task ON workflow_step(task_id);
+CREATE INDEX IF NOT EXISTS idx_workflow_step_status ON workflow_step(status);
+CREATE INDEX IF NOT EXISTS idx_workflow_step_sequence ON workflow_step(plan_id, sequence_no);
+
+CREATE TABLE IF NOT EXISTS workflow_issue (
+    id TEXT PRIMARY KEY,
+    plan_id TEXT NOT NULL REFERENCES workflow_plan(id) ON DELETE CASCADE,
+    task_id TEXT REFERENCES install_task(id) ON DELETE SET NULL,
+    dependency_id TEXT REFERENCES install_dependency(id) ON DELETE SET NULL,
+    severity TEXT NOT NULL CHECK (severity IN ('error', 'warning', 'info')),
+    category TEXT NOT NULL CHECK (
+        category IN (
+            'cycle',
+            'missing_dependency_task',
+            'review_dependency',
+            'blocked_predecessor',
+            'unplanned_task',
+            'task_needs_review',
+            'missing_scope'
+        )
+    ),
+    code TEXT NOT NULL,
+    message TEXT NOT NULL,
+    evidence_json TEXT,
+    status TEXT NOT NULL DEFAULT 'open' CHECK (
+        status IN ('open', 'accepted', 'resolved', 'rejected')
+    ),
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_workflow_issue_plan ON workflow_issue(plan_id);
+CREATE INDEX IF NOT EXISTS idx_workflow_issue_task ON workflow_issue(task_id);
+CREATE INDEX IF NOT EXISTS idx_workflow_issue_dependency ON workflow_issue(dependency_id);
+CREATE INDEX IF NOT EXISTS idx_workflow_issue_severity ON workflow_issue(severity);
+CREATE INDEX IF NOT EXISTS idx_workflow_issue_category ON workflow_issue(category);
+CREATE INDEX IF NOT EXISTS idx_workflow_issue_status ON workflow_issue(status);
+
 CREATE TABLE IF NOT EXISTS grid_axis (
     id TEXT PRIMARY KEY,
     drawing_id TEXT REFERENCES drawing(id) ON DELETE CASCADE,
