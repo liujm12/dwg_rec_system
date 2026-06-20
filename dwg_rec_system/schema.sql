@@ -466,6 +466,188 @@ CREATE INDEX IF NOT EXISTS idx_workflow_issue_severity ON workflow_issue(severit
 CREATE INDEX IF NOT EXISTS idx_workflow_issue_category ON workflow_issue(category);
 CREATE INDEX IF NOT EXISTS idx_workflow_issue_status ON workflow_issue(status);
 
+CREATE TABLE IF NOT EXISTS source_document (
+    id TEXT PRIMARY KEY,
+    project_id TEXT REFERENCES project(id) ON DELETE SET NULL,
+    source_uri TEXT NOT NULL UNIQUE,
+    source_type TEXT NOT NULL DEFAULT 'unknown' CHECK (
+        source_type IN ('pdf', 'dwg', 'dxf', 'image', 'cad_export', 'json', 'unknown')
+    ),
+    file_hash TEXT,
+    title TEXT,
+    parser_name TEXT,
+    parser_version TEXT,
+    metadata_json TEXT,
+    status TEXT NOT NULL DEFAULT 'active' CHECK (
+        status IN ('active', 'archived', 'failed')
+    ),
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_source_document_project ON source_document(project_id);
+CREATE INDEX IF NOT EXISTS idx_source_document_status ON source_document(status);
+
+CREATE TABLE IF NOT EXISTS drawing_page (
+    id TEXT PRIMARY KEY,
+    source_document_id TEXT NOT NULL REFERENCES source_document(id) ON DELETE CASCADE,
+    drawing_id TEXT REFERENCES drawing(id) ON DELETE SET NULL,
+    page_no INTEGER,
+    layout_name TEXT,
+    width REAL,
+    height REAL,
+    unit TEXT,
+    scale TEXT,
+    rotation REAL NOT NULL DEFAULT 0,
+    metadata_json TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE (source_document_id, page_no, layout_name)
+);
+
+CREATE INDEX IF NOT EXISTS idx_drawing_page_source ON drawing_page(source_document_id);
+CREATE INDEX IF NOT EXISTS idx_drawing_page_drawing ON drawing_page(drawing_id);
+
+CREATE TABLE IF NOT EXISTS drawing_primitive (
+    id TEXT PRIMARY KEY,
+    page_id TEXT NOT NULL REFERENCES drawing_page(id) ON DELETE CASCADE,
+    source_local_id TEXT NOT NULL,
+    primitive_type TEXT NOT NULL DEFAULT 'unknown' CHECK (
+        primitive_type IN (
+            'line',
+            'polyline',
+            'path',
+            'rect',
+            'circle',
+            'arc',
+            'text',
+            'image',
+            'block',
+            'symbol',
+            'unknown'
+        )
+    ),
+    geometry_json TEXT,
+    bbox_json TEXT,
+    text TEXT,
+    style_json TEXT,
+    raw_json TEXT,
+    confidence REAL NOT NULL DEFAULT 1.0 CHECK (confidence >= 0 AND confidence <= 1),
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE (page_id, source_local_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_drawing_primitive_page ON drawing_primitive(page_id);
+CREATE INDEX IF NOT EXISTS idx_drawing_primitive_type ON drawing_primitive(primitive_type);
+
+CREATE TABLE IF NOT EXISTS recognition_candidate (
+    id TEXT PRIMARY KEY,
+    page_id TEXT NOT NULL REFERENCES drawing_page(id) ON DELETE CASCADE,
+    source_local_id TEXT NOT NULL,
+    candidate_type TEXT NOT NULL DEFAULT 'unknown' CHECK (
+        candidate_type IN ('object', 'text_label', 'attribute', 'relation_hint', 'geometry_group', 'unknown')
+    ),
+    class_code TEXT,
+    label TEXT,
+    confidence REAL NOT NULL DEFAULT 1.0 CHECK (confidence >= 0 AND confidence <= 1),
+    source TEXT NOT NULL CHECK (
+        source IN ('rule', 'parser', 'ocr', 'cv', 'llm', 'manual', 'import')
+    ),
+    model_name TEXT,
+    model_version TEXT,
+    geometry_json TEXT,
+    bbox_json TEXT,
+    attributes_json TEXT,
+    evidence_json TEXT,
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (
+        status IN ('pending', 'accepted', 'rejected', 'superseded', 'merged')
+    ),
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE (page_id, source_local_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_recognition_candidate_page ON recognition_candidate(page_id);
+CREATE INDEX IF NOT EXISTS idx_recognition_candidate_class ON recognition_candidate(class_code);
+CREATE INDEX IF NOT EXISTS idx_recognition_candidate_status ON recognition_candidate(status);
+
+CREATE TABLE IF NOT EXISTS recognition_candidate_primitive (
+    id TEXT PRIMARY KEY,
+    candidate_id TEXT NOT NULL REFERENCES recognition_candidate(id) ON DELETE CASCADE,
+    primitive_id TEXT NOT NULL REFERENCES drawing_primitive(id) ON DELETE CASCADE,
+    role TEXT NOT NULL DEFAULT 'context' CHECK (
+        role IN ('geometry', 'text', 'symbol', 'anchor', 'context', 'negative')
+    ),
+    weight REAL NOT NULL DEFAULT 1.0,
+    evidence_json TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE (candidate_id, primitive_id, role)
+);
+
+CREATE INDEX IF NOT EXISTS idx_candidate_primitive_candidate
+    ON recognition_candidate_primitive(candidate_id);
+CREATE INDEX IF NOT EXISTS idx_candidate_primitive_primitive
+    ON recognition_candidate_primitive(primitive_id);
+
+CREATE TABLE IF NOT EXISTS object_hypothesis (
+    id TEXT PRIMARY KEY,
+    page_id TEXT NOT NULL REFERENCES drawing_page(id) ON DELETE CASCADE,
+    source_document_id TEXT NOT NULL REFERENCES source_document(id) ON DELETE CASCADE,
+    class_code TEXT NOT NULL,
+    subtype TEXT,
+    source_local_id TEXT NOT NULL,
+    confidence REAL NOT NULL DEFAULT 1.0 CHECK (confidence >= 0 AND confidence <= 1),
+    geometry_json TEXT,
+    bbox_json TEXT,
+    attributes_json TEXT,
+    evidence_json TEXT,
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (
+        status IN ('pending', 'accepted', 'rejected', 'merged', 'superseded')
+    ),
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE (page_id, source_local_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_object_hypothesis_page ON object_hypothesis(page_id);
+CREATE INDEX IF NOT EXISTS idx_object_hypothesis_source ON object_hypothesis(source_document_id);
+CREATE INDEX IF NOT EXISTS idx_object_hypothesis_class ON object_hypothesis(class_code);
+CREATE INDEX IF NOT EXISTS idx_object_hypothesis_status ON object_hypothesis(status);
+
+CREATE TABLE IF NOT EXISTS hypothesis_candidate (
+    id TEXT PRIMARY KEY,
+    hypothesis_id TEXT NOT NULL REFERENCES object_hypothesis(id) ON DELETE CASCADE,
+    candidate_id TEXT NOT NULL REFERENCES recognition_candidate(id) ON DELETE CASCADE,
+    role TEXT NOT NULL DEFAULT 'primary' CHECK (
+        role IN ('primary', 'attribute', 'label', 'geometry', 'context', 'negative')
+    ),
+    weight REAL NOT NULL DEFAULT 1.0,
+    evidence_json TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE (hypothesis_id, candidate_id, role)
+);
+
+CREATE INDEX IF NOT EXISTS idx_hypothesis_candidate_hypothesis
+    ON hypothesis_candidate(hypothesis_id);
+CREATE INDEX IF NOT EXISTS idx_hypothesis_candidate_candidate
+    ON hypothesis_candidate(candidate_id);
+
+CREATE TABLE IF NOT EXISTS hypothesis_to_object (
+    id TEXT PRIMARY KEY,
+    hypothesis_id TEXT NOT NULL UNIQUE REFERENCES object_hypothesis(id) ON DELETE CASCADE,
+    object_id TEXT NOT NULL REFERENCES cad_object(id) ON DELETE CASCADE,
+    accepted_by TEXT,
+    acceptance_method TEXT NOT NULL DEFAULT 'manual' CHECK (
+        acceptance_method IN ('manual', 'rule', 'threshold', 'import')
+    ),
+    evidence_json TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_hypothesis_to_object_object
+    ON hypothesis_to_object(object_id);
+
 CREATE TABLE IF NOT EXISTS grid_axis (
     id TEXT PRIMARY KEY,
     drawing_id TEXT REFERENCES drawing(id) ON DELETE CASCADE,

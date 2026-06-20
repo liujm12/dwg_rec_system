@@ -6,6 +6,8 @@ It is not a direct DWG-to-Excel script. The intended flow is:
 
 ```text
 CAD/DWG/DXF/parser output
+  -> recognition modeling layer
+  -> accepted object hypothesis
   -> normalized JSON
   -> ObjectStore
   -> cad_object + geometry + cad_meta + attribute
@@ -34,6 +36,7 @@ The long-term roadmap covers multi-discipline equipment recognition, quantity ta
 
 - SQLite schema for projects, drawings, objects, geometry, CAD metadata, attributes, rules, candidates, relations, corrections, and artifacts.
 - Normalized JSON importer for parser-agnostic CAD recognition output.
+- Recognition modeling layer for source documents, pages, primitives, candidates, object hypotheses, and hypothesis acceptance.
 - Idempotent object import by `source_file + handle`.
 - Taxonomy seeding from `dwg_rec_system/taxonomy/cad_object_taxonomy.json`.
 - Engineering class profiles from `dwg_rec_system/taxonomy/engineering_class_profiles.json`.
@@ -46,7 +49,7 @@ The long-term roadmap covers multi-discipline equipment recognition, quantity ta
 - Installation guidance from accepted objects, accepted relations, and `engineering_class_profiles.json` installation profiles.
 - Workflow planning from installation tasks and dependencies into deterministic, reviewable workflow steps and issues.
 - Spatial queries for nearest, contains, and overlap.
-- CSV export for recognized objects, quantity rows, data quality findings, budget rows, installation tasks, and workflow plans.
+- CSV export for recognized objects, recognition candidates, object hypotheses, quantity rows, data quality findings, budget rows, installation tasks, and workflow plans.
 
 ## Quick Start
 
@@ -76,12 +79,18 @@ python -m dwg_rec_system.cli generate-workflow-plan
 python -m dwg_rec_system.cli list-workflow-plans
 python -m dwg_rec_system.cli list-workflow-steps
 python -m dwg_rec_system.cli list-workflow-issues
+python -m dwg_rec_system.cli import-recognition-json --input samples/demo_recognition.json
+python -m dwg_rec_system.cli list-source-documents
+python -m dwg_rec_system.cli list-recognition-candidates
+python -m dwg_rec_system.cli list-object-hypotheses
 python -m dwg_rec_system.cli export-csv
 python -m dwg_rec_system.cli export-quantities-csv
 python -m dwg_rec_system.cli export-quality-findings-csv
 python -m dwg_rec_system.cli export-budget-csv
 python -m dwg_rec_system.cli export-install-tasks-csv
 python -m dwg_rec_system.cli export-workflow-plan-csv
+python -m dwg_rec_system.cli export-recognition-candidates-csv
+python -m dwg_rec_system.cli export-object-hypotheses-csv
 ```
 
 Expected result:
@@ -98,7 +107,9 @@ Expected result:
 - accepted relations generate simple `install_dependency` hints when both sides have tasks
 - installation instruction generation creates deterministic template text in `install_instruction`
 - workflow planning creates `workflow_plan`, ordered `workflow_step` rows, and reviewable `workflow_issue` rows
+- recognition import creates source/page/primitive/candidate/hypothesis records without creating final objects
 - CSV export writes `exports/objects.csv`
+- recognition CSV export writes `exports/recognition_candidates.csv` and `exports/object_hypotheses.csv`
 - quantity CSV export writes `exports/quantities.csv`
 - quality CSV export writes `exports/quality_findings.csv`
 - budget CSV export writes `exports/budget.csv`
@@ -126,6 +137,8 @@ The current `RelationEngine` accepts rule candidates immediately after creating 
 `generate-install-tasks` is deterministic installation guidance, not workflow planning. It creates one project-specific `install_task` for each active object with an installation profile. `generate-install-dependencies` uses only accepted `relation` rows for simple dependency hints. `generate-install-instructions` creates template text from structured task evidence; it is not LLM-generated.
 
 `generate-workflow-plan` is deterministic workflow planning, not a construction schedule. It topologically orders installation tasks from `install_dependency`, records review/blocking issues, and writes ordered `workflow_step` rows. It does not calculate dates, critical path, manpower, shifts, or optimized crew/resource allocation.
+
+`import-recognition-json` imports recognition evidence and hypotheses, not final engineering objects. A hypothesis becomes a `cad_object` only through `accept-hypothesis`, which calls `ObjectStore` and records the mapping in `hypothesis_to_object`. Round 9 still does not parse real PDFs, DWGs, DXFs, images, or OCR/model outputs.
 
 ## CLI Commands
 
@@ -167,10 +180,18 @@ The current `RelationEngine` accepts rule candidates immediately after creating 
 | `list-workflow-steps [--plan-id <id>] [--status <status>]` | List ordered workflow steps as JSON. |
 | `list-workflow-issues [--plan-id <id>] [--severity <level>]` | List workflow planning issues as JSON. |
 | `export-workflow-plan-csv [--plan-id <id>] [--output <file>]` | Export ordered workflow steps to CSV. |
+| `import-recognition-json --input <file>` | Import recognition evidence JSON without creating final objects. |
+| `list-source-documents [--status <status>]` | List recognition source documents as JSON. |
+| `list-recognition-candidates [--class-code <class>] [--status <status>]` | List recognition candidates as JSON. |
+| `list-object-hypotheses [--class-code <class>] [--status <status>]` | List object hypotheses as JSON. |
+| `accept-hypothesis <hypothesis_id>` | Accept a hypothesis into `cad_object` through `ObjectStore`. |
+| `export-recognition-candidates-csv [--output <file>]` | Export recognition candidates to CSV. |
+| `export-object-hypotheses-csv [--output <file>]` | Export object hypotheses to CSV. |
 
 ## Sample Files
 
 - `samples/demo_parsed.json`: normalized parser output with one control panel and one DDC controller.
+- `samples/demo_recognition.json`: synthetic recognition evidence with primitives, a candidate, and an object hypothesis.
 - `samples/demo_rules.json`: one spatial rule that infers `DDC mounted_on CONTROL_PANEL`.
 - `samples/demo_cost_items.json`: demo cost item library for CONTROL_PANEL and DDC quantities.
 - `dwg_rec_system/taxonomy/cad_object_taxonomy.json`: primary CAD object taxonomy and the source for `object_class`.
@@ -208,5 +229,6 @@ python -m dwg_rec_system.cli init-db
 - `docs/agent_tasks_round_6.md`: completed budgeting task package.
 - `docs/agent_tasks_round_7.md`: completed installation guidance task package.
 - `docs/agent_tasks_round_8.md`: completed workflow planning task package.
+- `docs/agent_tasks_round_9.md`: completed recognition modeling task package.
 - `docs/taxonomy_profile.md`: taxonomy profile shape and usage guide.
 - `docs/final_roadmap.md`: long-term database and module roadmap for multi-discipline budgeting and installation planning.

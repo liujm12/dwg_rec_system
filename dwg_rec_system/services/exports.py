@@ -385,6 +385,125 @@ class CsvExporter:
             writer.writerows(dict(row) for row in rows)
         return output
 
+    def export_recognition_candidates(
+        self,
+        path: str | Path,
+        status: str | None = None,
+        class_code: str | None = None,
+    ) -> Path:
+        output = Path(path)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        conditions: list[str] = []
+        params: list[str] = []
+        if status:
+            conditions.append("c.status = ?")
+            params.append(status)
+        if class_code:
+            conditions.append("c.class_code = ?")
+            params.append(class_code)
+        where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+        rows = self.connection.execute(
+            f"""
+            SELECT
+                c.id,
+                d.source_uri,
+                p.page_no,
+                p.layout_name,
+                c.source_local_id,
+                c.candidate_type,
+                c.class_code,
+                c.label,
+                c.confidence,
+                c.source,
+                c.model_name,
+                c.model_version,
+                c.status
+            FROM recognition_candidate c
+            LEFT JOIN drawing_page p ON p.id = c.page_id
+            LEFT JOIN source_document d ON d.id = p.source_document_id
+            {where}
+            ORDER BY d.source_uri, p.page_no, p.layout_name, c.source_local_id, c.id
+            """,
+            params,
+        ).fetchall()
+        fields = [
+            "id",
+            "source_uri",
+            "page_no",
+            "layout_name",
+            "source_local_id",
+            "candidate_type",
+            "class_code",
+            "label",
+            "confidence",
+            "source",
+            "model_name",
+            "model_version",
+            "status",
+        ]
+        with output.open("w", newline="", encoding="utf-8-sig") as file:
+            writer = csv.DictWriter(file, fieldnames=fields)
+            writer.writeheader()
+            writer.writerows(dict(row) for row in rows)
+        return output
+
+    def export_object_hypotheses(
+        self,
+        path: str | Path,
+        status: str | None = None,
+        class_code: str | None = None,
+    ) -> Path:
+        output = Path(path)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        conditions: list[str] = []
+        params: list[str] = []
+        if status:
+            conditions.append("h.status = ?")
+            params.append(status)
+        if class_code:
+            conditions.append("h.class_code = ?")
+            params.append(class_code)
+        where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+        rows = self.connection.execute(
+            f"""
+            SELECT
+                h.id,
+                d.source_uri,
+                p.page_no,
+                p.layout_name,
+                h.source_local_id,
+                h.class_code,
+                h.subtype,
+                h.confidence,
+                h.status,
+                m.object_id
+            FROM object_hypothesis h
+            LEFT JOIN drawing_page p ON p.id = h.page_id
+            LEFT JOIN source_document d ON d.id = h.source_document_id
+            LEFT JOIN hypothesis_to_object m ON m.hypothesis_id = h.id
+            {where}
+            ORDER BY d.source_uri, p.page_no, p.layout_name, h.source_local_id, h.id
+            """,
+            params,
+        ).fetchall()
+        fields = [
+            "id",
+            "source_uri",
+            "page_no",
+            "layout_name",
+            "source_local_id",
+            "class_code",
+            "subtype",
+            "confidence",
+            "status",
+            "object_id",
+        ]
+        with output.open("w", newline="", encoding="utf-8-sig") as file:
+            writer = csv.DictWriter(file, fieldnames=fields)
+            writer.writeheader()
+            writer.writerows(dict(row) for row in rows)
+        return output
+
 
 def _serialize_finding(finding: dict, fields: list[str]) -> dict:
     row = {field: finding.get(field) for field in fields}

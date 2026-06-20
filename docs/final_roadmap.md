@@ -153,9 +153,9 @@ Recommended rule: start with JSON profiles, then promote stable fields into tabl
 
 ### 3.3 Recognition Modeling Tables
 
-Object recognition accuracy is a long-term core risk. Before implementing real PDF/DWG/DXF recognition, introduce a recognition modeling layer through an explicit architecture task.
+Object recognition accuracy is a long-term core risk. Round 9 introduced the first recognition modeling layer before real PDF/DWG/DXF recognition work.
 
-Candidate future tables:
+Round 9 durable tables:
 
 ```text
 source_document
@@ -164,6 +164,7 @@ drawing_primitive
 recognition_candidate
 recognition_candidate_primitive
 object_hypothesis
+hypothesis_candidate
 hypothesis_to_object
 ```
 
@@ -174,9 +175,9 @@ Responsibilities:
 - preserve model/rule/OCR candidates and confidence
 - combine candidates into object hypotheses
 - allow review, rejection, merge, and supersession before creating final objects
-- map accepted hypotheses to `cad_object`
+- map accepted hypotheses to `cad_object` through `hypothesis_to_object`
 
-This layer is especially important for PDF CAD drawings because CAD handles, blocks, and layers may be missing or unreliable.
+This layer is especially important for PDF CAD drawings because CAD handles, blocks, and layers may be missing or unreliable. Real parser adapters should write compatible recognition payloads or records into this layer before accepted hypotheses enter `ObjectStore`.
 
 ### 3.4 Engineering Quantity Tables
 
@@ -903,17 +904,16 @@ Scope:
 
 ### M9: Recognition Modeling Layer
 
-Status: next.
+Status: complete.
 
 Scope:
 
-Scope:
-
-- design recognition evidence tables
-- model source documents, pages/layouts, primitives, candidates, and object hypotheses
-- preserve candidate-to-primitive evidence
-- define acceptance flow from hypothesis to ObjectStore
+- add source document, drawing page, primitive, recognition candidate, object hypothesis, and mapping tables
+- preserve candidate-to-primitive and hypothesis-to-candidate evidence
+- import normalized recognition JSON without creating final objects
+- define acceptance flow from hypothesis to `ObjectStore`
 - define deterministic source-local identity for PDF objects that lack CAD handles
+- export recognition candidates and object hypotheses to CSV
 
 Success criteria:
 
@@ -923,6 +923,8 @@ Success criteria:
 - no model/parser writes directly to `cad_object` without the acceptance boundary
 
 ### M10: Real Parser Adapter Layer
+
+Status: next.
 
 Scope:
 
@@ -954,7 +956,7 @@ The most practical sequence from the current repository state is:
 3. Complete cost_item, budget_item, and budget generation.
 4. Complete install_task and installation guidance.
 5. Complete workflow dependency planning.
-6. Add recognition modeling tables before real PDF/DWG parser work.
+6. Complete recognition modeling tables before real PDF/DWG parser work.
 7. Connect real DWG/DXF/PDF parser adapters.
 8. Add API and UI.
 ```

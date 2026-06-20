@@ -20,9 +20,10 @@ The project currently has:
 - Budget generation service that matches `quantity_item` rows to seeded `cost_item` rows and creates auditable `budget_item` rows.
 - Installation guidance service that generates `install_task`, `install_dependency`, and deterministic `install_instruction` rows from accepted objects, accepted relations, and engineering installation profiles.
 - Workflow planning service that generates `workflow_plan`, ordered `workflow_step`, and reviewable `workflow_issue` rows from installation tasks and dependencies.
-- CLI commands: `init-db`, `seed-taxonomy`, `import-json`, `seed-rules`, `seed-demo`, `list-objects`, `nearest`, `infer-relations`, `list-candidates`, `accept-candidate`, `reject-candidate`, `generate-quantities`, `list-quantities`, `check-data-quality`, `list-quality-findings`, `seed-cost-items`, `list-cost-items`, `generate-budget`, `list-budget-items`, `generate-install-tasks`, `generate-install-dependencies`, `generate-install-instructions`, `list-install-tasks`, `list-install-dependencies`, `list-install-instructions`, `generate-workflow-plan`, `list-workflow-plans`, `list-workflow-steps`, `list-workflow-issues`, `export-csv`, `export-quantities-csv`, `export-quality-findings-csv`, `export-budget-csv`, `export-install-tasks-csv`, `export-workflow-plan-csv`.
+- Recognition modeling service that stores source documents, pages, primitives, candidates, object hypotheses, and accepted hypothesis-to-object mappings.
+- CLI commands: `init-db`, `seed-taxonomy`, `import-json`, `import-recognition-json`, `seed-rules`, `seed-demo`, `list-objects`, `nearest`, `infer-relations`, `list-candidates`, `accept-candidate`, `reject-candidate`, `list-source-documents`, `list-recognition-candidates`, `list-object-hypotheses`, `accept-hypothesis`, `generate-quantities`, `list-quantities`, `check-data-quality`, `list-quality-findings`, `seed-cost-items`, `list-cost-items`, `generate-budget`, `list-budget-items`, `generate-install-tasks`, `generate-install-dependencies`, `generate-install-instructions`, `list-install-tasks`, `list-install-dependencies`, `list-install-instructions`, `generate-workflow-plan`, `list-workflow-plans`, `list-workflow-steps`, `list-workflow-issues`, `export-csv`, `export-recognition-candidates-csv`, `export-object-hypotheses-csv`, `export-quantities-csv`, `export-quality-findings-csv`, `export-budget-csv`, `export-install-tasks-csv`, `export-workflow-plan-csv`.
 - Cleanroom CAD taxonomy JSON v0.2.0 with 164 object classes.
-- Test coverage for import, taxonomy, rule seeding, candidate review, integration, taxonomy structure, baseline relation flow, quantity generation, quantity export, data quality checks, quality export, cost item seeding, budget generation, budget export, installation task generation, installation dependency generation, installation instructions, installation task export, workflow graph generation, workflow planning, workflow issues, and workflow export.
+- Test coverage for import, taxonomy, rule seeding, candidate review, integration, taxonomy structure, baseline relation flow, recognition modeling, hypothesis acceptance, recognition exports, quantity generation, quantity export, data quality checks, quality export, cost item seeding, budget generation, budget export, installation task generation, installation dependency generation, installation instructions, installation task export, workflow graph generation, workflow planning, workflow issues, and workflow export.
 
 Milestone 1 and Milestone 2 are complete. The current system can import normalized parser output, validate classes against taxonomy, seed rules, infer one demo relation, review relation candidates, and export CSV.
 
@@ -292,7 +293,7 @@ Success criteria:
 
 ## Milestone 9: Recognition Modeling Layer
 
-Status: NEXT.
+Status: COMPLETE.
 
 Goal:
 
@@ -305,13 +306,15 @@ PDF/DWG/DXF/image source
   -> ObjectStore
 ```
 
-Candidate work:
+Completed:
 
-- Design source document, page/layout, primitive, candidate, and hypothesis tables.
-- Preserve evidence from PDF vectors, text, OCR, CAD metadata, geometry, and model outputs.
-- Define status flow for hypotheses: pending, accepted, rejected, merged, superseded.
-- Define deterministic source-local ids for PDF objects that do not have CAD handles.
-- Ensure accepted hypotheses enter the existing normalized JSON / ObjectStore boundary.
+- Added `source_document`, `drawing_page`, `drawing_primitive`, `recognition_candidate`, `recognition_candidate_primitive`, `object_hypothesis`, `hypothesis_candidate`, and `hypothesis_to_object`.
+- Added `services/recognition.py`.
+- Import normalized recognition JSON without creating final objects.
+- Preserve source/page/primitive/candidate/hypothesis evidence.
+- Accept hypotheses into final `cad_object` rows only through `ObjectStore`.
+- Record accepted hypothesis-to-object mappings.
+- Export recognition candidates and object hypotheses to CSV.
 
 Success criteria:
 
@@ -321,7 +324,7 @@ Success criteria:
 
 ## Milestone 10: Parser Adapter Layer
 
-Status: PLANNED.
+Status: NEXT.
 
 Goal:
 
@@ -452,6 +455,6 @@ Success criteria:
 
 ## Near-Term Priority
 
-Do recognition modeling next.
+Do parser adapter design next.
 
-The quantity, data quality, budgeting, installation guidance, and workflow planning layers are now in place. The next practical step is to design recognition evidence tables before real PDF/DWG/DXF parser work. Do not start real parser adapters, API, LLM, or PostGIS implementation before the recognition modeling boundary is defined.
+The quantity, data quality, budgeting, installation guidance, workflow planning, and recognition modeling layers are now in place. The next practical step is to design a parser adapter boundary that writes into recognition payloads or the normalized import path. Do not start API, UI, LLM, or PostGIS implementation before the parser adapter boundary is defined.

@@ -1,0 +1,109 @@
+{
+  "source_document": {
+    "source_uri": "samples/demo_recognition.pdf",
+    "source_type": "pdf",
+    "title": "Demo recognition source",
+    "parser_name": "demo_recognition_import",
+    "parser_version": "0.1",
+    "metadata": {
+      "note": "Synthetic recognition evidence for Round 9 tests"
+    }
+  },
+  "pages": [
+    {
+      "page": {
+        "page_no": 1,
+        "width": 420,
+        "height": 297,
+        "unit": "mm",
+        "scale": "1:100"
+      },
+      "primitives": [
+        {
+          "source_local_id": "p-control-panel-box",
+          "primitive_type": "rect",
+          "bbox": {
+            "min_x": 100,
+            "min_y": 100,
+            "max_x": 160,
+            "max_y": 180
+          },
+          "confidence": 0.98
+        },
+        {
+          "source_local_id": "p-control-panel-label",
+          "primitive_type": "text",
+          "text": "CP-01",
+          "bbox": {
+            "min_x": 105,
+            "min_y": 85,
+            "max_x": 150,
+            "max_y": 98
+          },
+          "confidence": 0.96
+        }
+      ],
+      "candidates": [
+        {
+          "source_local_id": "c-control-panel",
+          "candidate_type": "object",
+          "class_code": "CONTROL_PANEL",
+          "label": "control panel candidate",
+          "confidence": 0.94,
+          "source": "import",
+          "model_name": "demo_model",
+          "model_version": "0.1",
+          "bbox": {
+            "min_x": 100,
+            "min_y": 100,
+            "max_x": 160,
+            "max_y": 180
+          },
+          "attributes": {
+            "tag": "CP-01",
+            "system": "BMS"
+          },
+          "primitive_links": [
+            {
+              "primitive_source_local_id": "p-control-panel-box",
+              "role": "geometry",
+              "weight": 1.0
+            },
+            {
+              "primitive_source_local_id": "p-control-panel-label",
+              "role": "text",
+              "weight": 0.8
+            }
+          ]
+        }
+      ],
+      "hypotheses": [
+        {
+          "source_local_id": "h-control-panel",
+          "class_code": "CONTROL_PANEL",
+          "confidence": 0.93,
+          "bbox": {
+            "min_x": 100,
+            "min_y": 100,
+            "max_x": 160,
+            "max_y": 180
+          },
+          "geometry": {
+            "source": "synthetic_bbox"
+          },
+          "attributes": {
+            "tag": "CP-01",
+            "system": "BMS"
+          },
+          "candidate_links": [
+            {
+              "candidate_source_local_id": "c-control-panel",
+              "role": "primary",
+              "weight": 1.0
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -16,6 +16,10 @@ def row_to_dict(row: sqlite3.Row | None) -> dict[str, Any] | None:
     return dict(row) if row else None
 
 
+def _json_or_none(value: dict[str, Any] | list[Any] | None) -> str | None:
+    return json.dumps(value, ensure_ascii=False, sort_keys=True) if value is not None else None
+
+
 class DrawingRepository:
     def __init__(self, connection: sqlite3.Connection):
         self.connection = connection
@@ -1526,6 +1530,573 @@ class WorkflowIssueRepository:
                 id
             """,
             params,
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+
+class SourceDocumentRepository:
+    def __init__(self, connection: sqlite3.Connection):
+        self.connection = connection
+
+    def upsert(
+        self,
+        source_uri: str,
+        source_type: str = "unknown",
+        project_id: str | None = None,
+        file_hash: str | None = None,
+        title: str | None = None,
+        parser_name: str | None = None,
+        parser_version: str | None = None,
+        metadata: dict[str, Any] | None = None,
+        status: str = "active",
+    ) -> str:
+        document_id = new_id("src")
+        self.connection.execute(
+            """
+            INSERT INTO source_document(
+                id, project_id, source_uri, source_type, file_hash, title,
+                parser_name, parser_version, metadata_json, status
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(source_uri) DO UPDATE SET
+                project_id = excluded.project_id,
+                source_type = excluded.source_type,
+                file_hash = excluded.file_hash,
+                title = excluded.title,
+                parser_name = excluded.parser_name,
+                parser_version = excluded.parser_version,
+                metadata_json = excluded.metadata_json,
+                status = excluded.status,
+                updated_at = datetime('now')
+            """,
+            (
+                document_id,
+                project_id,
+                source_uri,
+                source_type,
+                file_hash,
+                title,
+                parser_name,
+                parser_version,
+                json.dumps(metadata, ensure_ascii=False, sort_keys=True) if metadata else None,
+                status,
+            ),
+        )
+        row = self.connection.execute(
+            "SELECT id FROM source_document WHERE source_uri = ?",
+            (source_uri,),
+        ).fetchone()
+        return row["id"]
+
+    def get(self, document_id: str) -> dict[str, Any] | None:
+        row = self.connection.execute(
+            "SELECT * FROM source_document WHERE id = ?",
+            (document_id,),
+        ).fetchone()
+        return row_to_dict(row)
+
+    def list(
+        self,
+        project_id: str | None = None,
+        status: str | None = None,
+    ) -> list[dict[str, Any]]:
+        conditions: list[str] = []
+        params: list[Any] = []
+        if project_id:
+            conditions.append("project_id = ?")
+            params.append(project_id)
+        if status:
+            conditions.append("status = ?")
+            params.append(status)
+        where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+        rows = self.connection.execute(
+            f"SELECT * FROM source_document {where} ORDER BY created_at, id",
+            params,
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+
+class DrawingPageRepository:
+    def __init__(self, connection: sqlite3.Connection):
+        self.connection = connection
+
+    def upsert(
+        self,
+        source_document_id: str,
+        drawing_id: str | None = None,
+        page_no: int | None = None,
+        layout_name: str | None = None,
+        width: float | None = None,
+        height: float | None = None,
+        unit: str | None = None,
+        scale: str | None = None,
+        rotation: float = 0,
+        metadata: dict[str, Any] | None = None,
+    ) -> str:
+        existing = self.connection.execute(
+            """
+            SELECT id FROM drawing_page
+            WHERE source_document_id = ?
+              AND COALESCE(page_no, -1) = COALESCE(?, -1)
+              AND COALESCE(layout_name, '') = COALESCE(?, '')
+            """,
+            (source_document_id, page_no, layout_name),
+        ).fetchone()
+        page_id = existing["id"] if existing else new_id("pg")
+        if existing:
+            self.connection.execute(
+                """
+                UPDATE drawing_page
+                SET drawing_id = ?, width = ?, height = ?, unit = ?, scale = ?,
+                    rotation = ?, metadata_json = ?, updated_at = datetime('now')
+                WHERE id = ?
+                """,
+                (
+                    drawing_id,
+                    width,
+                    height,
+                    unit,
+                    scale,
+                    rotation,
+                    json.dumps(metadata, ensure_ascii=False, sort_keys=True) if metadata else None,
+                    page_id,
+                ),
+            )
+            return page_id
+        self.connection.execute(
+            """
+            INSERT INTO drawing_page(
+                id, source_document_id, drawing_id, page_no, layout_name,
+                width, height, unit, scale, rotation, metadata_json
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                page_id,
+                source_document_id,
+                drawing_id,
+                page_no,
+                layout_name,
+                width,
+                height,
+                unit,
+                scale,
+                rotation,
+                json.dumps(metadata, ensure_ascii=False, sort_keys=True) if metadata else None,
+            ),
+        )
+        return page_id
+
+    def get(self, page_id: str) -> dict[str, Any] | None:
+        row = self.connection.execute(
+            "SELECT * FROM drawing_page WHERE id = ?",
+            (page_id,),
+        ).fetchone()
+        return row_to_dict(row)
+
+    def list(self, source_document_id: str | None = None) -> list[dict[str, Any]]:
+        if source_document_id:
+            rows = self.connection.execute(
+                """
+                SELECT * FROM drawing_page
+                WHERE source_document_id = ?
+                ORDER BY page_no, layout_name, id
+                """,
+                (source_document_id,),
+            ).fetchall()
+        else:
+            rows = self.connection.execute(
+                "SELECT * FROM drawing_page ORDER BY source_document_id, page_no, layout_name, id"
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+
+class DrawingPrimitiveRepository:
+    def __init__(self, connection: sqlite3.Connection):
+        self.connection = connection
+
+    def upsert(
+        self,
+        page_id: str,
+        source_local_id: str,
+        primitive_type: str = "unknown",
+        geometry: dict[str, Any] | None = None,
+        bbox: dict[str, Any] | None = None,
+        text: str | None = None,
+        style: dict[str, Any] | None = None,
+        raw: dict[str, Any] | None = None,
+        confidence: float = 1.0,
+    ) -> str:
+        primitive_id = new_id("prim")
+        self.connection.execute(
+            """
+            INSERT INTO drawing_primitive(
+                id, page_id, source_local_id, primitive_type, geometry_json,
+                bbox_json, text, style_json, raw_json, confidence
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(page_id, source_local_id) DO UPDATE SET
+                primitive_type = excluded.primitive_type,
+                geometry_json = excluded.geometry_json,
+                bbox_json = excluded.bbox_json,
+                text = excluded.text,
+                style_json = excluded.style_json,
+                raw_json = excluded.raw_json,
+                confidence = excluded.confidence,
+                updated_at = datetime('now')
+            """,
+            (
+                primitive_id,
+                page_id,
+                source_local_id,
+                primitive_type,
+                _json_or_none(geometry),
+                _json_or_none(bbox),
+                text,
+                _json_or_none(style),
+                _json_or_none(raw),
+                confidence,
+            ),
+        )
+        row = self.connection.execute(
+            "SELECT id FROM drawing_primitive WHERE page_id = ? AND source_local_id = ?",
+            (page_id, source_local_id),
+        ).fetchone()
+        return row["id"]
+
+    def list(self, page_id: str | None = None) -> list[dict[str, Any]]:
+        if page_id:
+            rows = self.connection.execute(
+                "SELECT * FROM drawing_primitive WHERE page_id = ? ORDER BY source_local_id, id",
+                (page_id,),
+            ).fetchall()
+        else:
+            rows = self.connection.execute(
+                "SELECT * FROM drawing_primitive ORDER BY page_id, source_local_id, id"
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+
+class RecognitionCandidateRepository:
+    def __init__(self, connection: sqlite3.Connection):
+        self.connection = connection
+
+    def upsert(
+        self,
+        page_id: str,
+        source_local_id: str,
+        candidate_type: str = "unknown",
+        class_code: str | None = None,
+        label: str | None = None,
+        confidence: float = 1.0,
+        source: str = "import",
+        model_name: str | None = None,
+        model_version: str | None = None,
+        geometry: dict[str, Any] | None = None,
+        bbox: dict[str, Any] | None = None,
+        attributes: dict[str, Any] | None = None,
+        evidence: dict[str, Any] | None = None,
+        status: str = "pending",
+    ) -> str:
+        candidate_id = new_id("rcog")
+        self.connection.execute(
+            """
+            INSERT INTO recognition_candidate(
+                id, page_id, source_local_id, candidate_type, class_code,
+                label, confidence, source, model_name, model_version,
+                geometry_json, bbox_json, attributes_json, evidence_json, status
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(page_id, source_local_id) DO UPDATE SET
+                candidate_type = excluded.candidate_type,
+                class_code = excluded.class_code,
+                label = excluded.label,
+                confidence = excluded.confidence,
+                source = excluded.source,
+                model_name = excluded.model_name,
+                model_version = excluded.model_version,
+                geometry_json = excluded.geometry_json,
+                bbox_json = excluded.bbox_json,
+                attributes_json = excluded.attributes_json,
+                evidence_json = excluded.evidence_json,
+                status = excluded.status,
+                updated_at = datetime('now')
+            """,
+            (
+                candidate_id,
+                page_id,
+                source_local_id,
+                candidate_type,
+                class_code,
+                label,
+                confidence,
+                source,
+                model_name,
+                model_version,
+                _json_or_none(geometry),
+                _json_or_none(bbox),
+                _json_or_none(attributes),
+                _json_or_none(evidence),
+                status,
+            ),
+        )
+        row = self.connection.execute(
+            "SELECT id FROM recognition_candidate WHERE page_id = ? AND source_local_id = ?",
+            (page_id, source_local_id),
+        ).fetchone()
+        return row["id"]
+
+    def link_primitive(
+        self,
+        candidate_id: str,
+        primitive_id: str,
+        role: str = "context",
+        weight: float = 1.0,
+        evidence: dict[str, Any] | None = None,
+    ) -> str:
+        link_id = new_id("rcl")
+        self.connection.execute(
+            """
+            INSERT INTO recognition_candidate_primitive(
+                id, candidate_id, primitive_id, role, weight, evidence_json
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT(candidate_id, primitive_id, role) DO UPDATE SET
+                weight = excluded.weight,
+                evidence_json = excluded.evidence_json
+            """,
+            (link_id, candidate_id, primitive_id, role, weight, _json_or_none(evidence)),
+        )
+        row = self.connection.execute(
+            """
+            SELECT id FROM recognition_candidate_primitive
+            WHERE candidate_id = ? AND primitive_id = ? AND role = ?
+            """,
+            (candidate_id, primitive_id, role),
+        ).fetchone()
+        return row["id"]
+
+    def update_status(self, candidate_id: str, status: str) -> None:
+        self.connection.execute(
+            "UPDATE recognition_candidate SET status = ?, updated_at = datetime('now') WHERE id = ?",
+            (status, candidate_id),
+        )
+
+    def list(
+        self,
+        page_id: str | None = None,
+        class_code: str | None = None,
+        status: str | None = None,
+    ) -> list[dict[str, Any]]:
+        conditions: list[str] = []
+        params: list[Any] = []
+        if page_id:
+            conditions.append("page_id = ?")
+            params.append(page_id)
+        if class_code:
+            conditions.append("class_code = ?")
+            params.append(class_code)
+        if status:
+            conditions.append("status = ?")
+            params.append(status)
+        where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+        rows = self.connection.execute(
+            f"SELECT * FROM recognition_candidate {where} ORDER BY page_id, source_local_id, id",
+            params,
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+    def linked_candidate_ids(self, hypothesis_id: str) -> list[str]:
+        rows = self.connection.execute(
+            """
+            SELECT candidate_id
+            FROM hypothesis_candidate
+            WHERE hypothesis_id = ?
+            ORDER BY role, candidate_id
+            """,
+            (hypothesis_id,),
+        ).fetchall()
+        return [row["candidate_id"] for row in rows]
+
+
+class ObjectHypothesisRepository:
+    def __init__(self, connection: sqlite3.Connection):
+        self.connection = connection
+
+    def upsert(
+        self,
+        page_id: str,
+        source_document_id: str,
+        class_code: str,
+        source_local_id: str,
+        subtype: str | None = None,
+        confidence: float = 1.0,
+        geometry: dict[str, Any] | None = None,
+        bbox: dict[str, Any] | None = None,
+        attributes: dict[str, Any] | None = None,
+        evidence: dict[str, Any] | None = None,
+        status: str = "pending",
+    ) -> str:
+        hypothesis_id = new_id("hyp")
+        self.connection.execute(
+            """
+            INSERT INTO object_hypothesis(
+                id, page_id, source_document_id, class_code, subtype,
+                source_local_id, confidence, geometry_json, bbox_json,
+                attributes_json, evidence_json, status
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(page_id, source_local_id) DO UPDATE SET
+                source_document_id = excluded.source_document_id,
+                class_code = excluded.class_code,
+                subtype = excluded.subtype,
+                confidence = excluded.confidence,
+                geometry_json = excluded.geometry_json,
+                bbox_json = excluded.bbox_json,
+                attributes_json = excluded.attributes_json,
+                evidence_json = excluded.evidence_json,
+                status = excluded.status,
+                updated_at = datetime('now')
+            """,
+            (
+                hypothesis_id,
+                page_id,
+                source_document_id,
+                class_code,
+                subtype,
+                source_local_id,
+                confidence,
+                _json_or_none(geometry),
+                _json_or_none(bbox),
+                _json_or_none(attributes),
+                _json_or_none(evidence),
+                status,
+            ),
+        )
+        row = self.connection.execute(
+            "SELECT id FROM object_hypothesis WHERE page_id = ? AND source_local_id = ?",
+            (page_id, source_local_id),
+        ).fetchone()
+        return row["id"]
+
+    def link_candidate(
+        self,
+        hypothesis_id: str,
+        candidate_id: str,
+        role: str = "primary",
+        weight: float = 1.0,
+        evidence: dict[str, Any] | None = None,
+    ) -> str:
+        link_id = new_id("hcl")
+        self.connection.execute(
+            """
+            INSERT INTO hypothesis_candidate(
+                id, hypothesis_id, candidate_id, role, weight, evidence_json
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT(hypothesis_id, candidate_id, role) DO UPDATE SET
+                weight = excluded.weight,
+                evidence_json = excluded.evidence_json
+            """,
+            (link_id, hypothesis_id, candidate_id, role, weight, _json_or_none(evidence)),
+        )
+        row = self.connection.execute(
+            """
+            SELECT id FROM hypothesis_candidate
+            WHERE hypothesis_id = ? AND candidate_id = ? AND role = ?
+            """,
+            (hypothesis_id, candidate_id, role),
+        ).fetchone()
+        return row["id"]
+
+    def get(self, hypothesis_id: str) -> dict[str, Any] | None:
+        row = self.connection.execute(
+            "SELECT * FROM object_hypothesis WHERE id = ?",
+            (hypothesis_id,),
+        ).fetchone()
+        return row_to_dict(row)
+
+    def update_status(self, hypothesis_id: str, status: str) -> None:
+        self.connection.execute(
+            "UPDATE object_hypothesis SET status = ?, updated_at = datetime('now') WHERE id = ?",
+            (status, hypothesis_id),
+        )
+
+    def list(
+        self,
+        page_id: str | None = None,
+        class_code: str | None = None,
+        status: str | None = None,
+    ) -> list[dict[str, Any]]:
+        conditions: list[str] = []
+        params: list[Any] = []
+        if page_id:
+            conditions.append("page_id = ?")
+            params.append(page_id)
+        if class_code:
+            conditions.append("class_code = ?")
+            params.append(class_code)
+        if status:
+            conditions.append("status = ?")
+            params.append(status)
+        where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+        rows = self.connection.execute(
+            f"SELECT * FROM object_hypothesis {where} ORDER BY page_id, source_local_id, id",
+            params,
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+
+class HypothesisToObjectRepository:
+    def __init__(self, connection: sqlite3.Connection):
+        self.connection = connection
+
+    def create(
+        self,
+        hypothesis_id: str,
+        object_id: str,
+        accepted_by: str | None = None,
+        acceptance_method: str = "manual",
+        evidence: dict[str, Any] | None = None,
+    ) -> str:
+        mapping_id = new_id("hobj")
+        self.connection.execute(
+            """
+            INSERT INTO hypothesis_to_object(
+                id, hypothesis_id, object_id, accepted_by, acceptance_method, evidence_json
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT(hypothesis_id) DO UPDATE SET
+                object_id = excluded.object_id,
+                accepted_by = excluded.accepted_by,
+                acceptance_method = excluded.acceptance_method,
+                evidence_json = excluded.evidence_json
+            """,
+            (
+                mapping_id,
+                hypothesis_id,
+                object_id,
+                accepted_by,
+                acceptance_method,
+                _json_or_none(evidence),
+            ),
+        )
+        row = self.connection.execute(
+            "SELECT id FROM hypothesis_to_object WHERE hypothesis_id = ?",
+            (hypothesis_id,),
+        ).fetchone()
+        return row["id"]
+
+    def find_by_hypothesis(self, hypothesis_id: str) -> dict[str, Any] | None:
+        row = self.connection.execute(
+            "SELECT * FROM hypothesis_to_object WHERE hypothesis_id = ?",
+            (hypothesis_id,),
+        ).fetchone()
+        return row_to_dict(row)
+
+    def list(self) -> list[dict[str, Any]]:
+        rows = self.connection.execute(
+            "SELECT * FROM hypothesis_to_object ORDER BY created_at, id"
         ).fetchall()
         return [dict(row) for row in rows]
 

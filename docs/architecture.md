@@ -134,7 +134,7 @@ Concepts:
 
 Recognition models, PDF parsers, OCR, and geometric grouping should not write directly to `cad_object` as final truth. They should preserve candidates and evidence until a deterministic rule, confidence threshold, or human review accepts a hypothesis.
 
-The current database does not yet implement these recognition tables. They are a planned layer and should be introduced through an explicit architecture task before real PDF/DWG recognition work.
+The current database implements the first version of these recognition tables. Real PDF/DWG/DXF parser adapters should write into this layer or produce compatible recognition payloads before accepted hypotheses enter the object store.
 
 Recognition evidence should preserve:
 
@@ -147,7 +147,7 @@ Recognition evidence should preserve:
 - rule or model reasoning
 - status such as `pending`, `accepted`, `rejected`, `merged`, or `superseded`
 
-Downstream engineering outputs such as `quantity_item`, future `budget_item`, and future `install_task` should remain traceable back to accepted objects and, eventually, to their recognition evidence.
+Downstream engineering outputs such as `quantity_item`, `budget_item`, `install_task`, and `workflow_plan` should remain traceable back to accepted objects and, through `hypothesis_to_object`, to their recognition evidence when the object originated from this layer.
 
 ## Module Responsibilities
 

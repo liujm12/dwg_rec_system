@@ -14,10 +14,13 @@ from .repositories import (
     InstallInstructionRepository,
     InstallTaskRepository,
     ObjectClassRepository,
+    ObjectHypothesisRepository,
     ProjectRepository,
     QuantityRepository,
+    RecognitionCandidateRepository,
     RelationCandidateRepository,
     RelationRepository,
+    SourceDocumentRepository,
     WorkflowIssueRepository,
     WorkflowPlanRepository,
     WorkflowStepRepository,
@@ -35,6 +38,7 @@ from .services.installation import (
 )
 from .services.object_store import ObjectStore
 from .services.quantity import QuantityGenerator
+from .services.recognition import HypothesisAcceptanceService, RecognitionImportService
 from .services.relation_engine import RelationEngine
 from .services.rules import RuleTemplateSeeder
 from .services.spatial_index import SpatialIndex
@@ -433,6 +437,69 @@ def cmd_export_workflow_plan_csv(args: argparse.Namespace) -> None:
     print(f"exported: {output}")
 
 
+def cmd_import_recognition_json(args: argparse.Namespace) -> None:
+    with session() as connection:
+        summary = RecognitionImportService(connection).import_file(args.input)
+    print(json.dumps(summary, ensure_ascii=False, indent=2))
+
+
+def cmd_list_source_documents(args: argparse.Namespace) -> None:
+    with session() as connection:
+        rows = SourceDocumentRepository(connection).list(
+            project_id=args.project_id,
+            status=args.status,
+        )
+    print(json.dumps(rows, ensure_ascii=False, indent=2))
+
+
+def cmd_list_recognition_candidates(args: argparse.Namespace) -> None:
+    with session() as connection:
+        rows = RecognitionCandidateRepository(connection).list(
+            class_code=args.class_code,
+            status=args.status,
+        )
+    print(json.dumps(rows, ensure_ascii=False, indent=2))
+
+
+def cmd_list_object_hypotheses(args: argparse.Namespace) -> None:
+    with session() as connection:
+        rows = ObjectHypothesisRepository(connection).list(
+            class_code=args.class_code,
+            status=args.status,
+        )
+    print(json.dumps(rows, ensure_ascii=False, indent=2))
+
+
+def cmd_accept_hypothesis(args: argparse.Namespace) -> None:
+    with session() as connection:
+        result = HypothesisAcceptanceService(connection).accept(
+            hypothesis_id=args.hypothesis_id,
+            accepted_by=args.accepted_by,
+            acceptance_method=args.acceptance_method,
+        )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+def cmd_export_recognition_candidates_csv(args: argparse.Namespace) -> None:
+    with session() as connection:
+        output = CsvExporter(connection).export_recognition_candidates(
+            args.output,
+            status=args.status,
+            class_code=args.class_code,
+        )
+    print(f"exported: {output}")
+
+
+def cmd_export_object_hypotheses_csv(args: argparse.Namespace) -> None:
+    with session() as connection:
+        output = CsvExporter(connection).export_object_hypotheses(
+            args.output,
+            status=args.status,
+            class_code=args.class_code,
+        )
+    print(f"exported: {output}")
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="CAD drawing recognition system database tools.")
     parser.add_argument("--db", default=None, help="Reserved for future use. Use DWG_REC_DB for now.")
@@ -750,6 +817,86 @@ def build_parser() -> argparse.ArgumentParser:
     export_workflow.add_argument("--output", default=str(Path("exports/workflow_plan.csv")))
     export_workflow.add_argument("--plan-id")
     export_workflow.set_defaults(func=cmd_export_workflow_plan_csv)
+
+    import_recognition = subparsers.add_parser(
+        "import-recognition-json",
+        help="Import normalized recognition evidence JSON without creating final objects.",
+    )
+    import_recognition.add_argument("--input", required=True, help="Path to recognition JSON file.")
+    import_recognition.set_defaults(func=cmd_import_recognition_json)
+
+    list_sources = subparsers.add_parser(
+        "list-source-documents",
+        help="List recognition source documents.",
+    )
+    list_sources.add_argument("--project-id")
+    list_sources.add_argument("--status", choices=["active", "archived", "failed"])
+    list_sources.set_defaults(func=cmd_list_source_documents)
+
+    list_recognition_candidates = subparsers.add_parser(
+        "list-recognition-candidates",
+        help="List recognition candidates.",
+    )
+    list_recognition_candidates.add_argument("--class-code")
+    list_recognition_candidates.add_argument(
+        "--status",
+        choices=["pending", "accepted", "rejected", "superseded", "merged"],
+    )
+    list_recognition_candidates.set_defaults(func=cmd_list_recognition_candidates)
+
+    list_object_hypotheses = subparsers.add_parser(
+        "list-object-hypotheses",
+        help="List object hypotheses.",
+    )
+    list_object_hypotheses.add_argument("--class-code")
+    list_object_hypotheses.add_argument(
+        "--status",
+        choices=["pending", "accepted", "rejected", "merged", "superseded"],
+    )
+    list_object_hypotheses.set_defaults(func=cmd_list_object_hypotheses)
+
+    accept_hypothesis = subparsers.add_parser(
+        "accept-hypothesis",
+        help="Accept an object hypothesis into cad_object through ObjectStore.",
+    )
+    accept_hypothesis.add_argument("hypothesis_id")
+    accept_hypothesis.add_argument("--accepted-by")
+    accept_hypothesis.add_argument(
+        "--acceptance-method",
+        choices=["manual", "rule", "threshold", "import"],
+        default="manual",
+    )
+    accept_hypothesis.set_defaults(func=cmd_accept_hypothesis)
+
+    export_recognition_candidates = subparsers.add_parser(
+        "export-recognition-candidates-csv",
+        help="Export recognition candidates as CSV.",
+    )
+    export_recognition_candidates.add_argument(
+        "--output",
+        default=str(Path("exports/recognition_candidates.csv")),
+    )
+    export_recognition_candidates.add_argument("--class-code")
+    export_recognition_candidates.add_argument(
+        "--status",
+        choices=["pending", "accepted", "rejected", "superseded", "merged"],
+    )
+    export_recognition_candidates.set_defaults(func=cmd_export_recognition_candidates_csv)
+
+    export_object_hypotheses = subparsers.add_parser(
+        "export-object-hypotheses-csv",
+        help="Export object hypotheses as CSV.",
+    )
+    export_object_hypotheses.add_argument(
+        "--output",
+        default=str(Path("exports/object_hypotheses.csv")),
+    )
+    export_object_hypotheses.add_argument("--class-code")
+    export_object_hypotheses.add_argument(
+        "--status",
+        choices=["pending", "accepted", "rejected", "merged", "superseded"],
+    )
+    export_object_hypotheses.set_defaults(func=cmd_export_object_hypotheses_csv)
 
     return parser
 
