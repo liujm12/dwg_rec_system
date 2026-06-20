@@ -260,6 +260,114 @@ def create_compat_tables(connection: sqlite3.Connection) -> None:
     connection.execute(
         "CREATE INDEX IF NOT EXISTS idx_budget_item_status ON budget_item(status)"
     )
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS install_task (
+            id TEXT PRIMARY KEY,
+            project_id TEXT REFERENCES project(id) ON DELETE SET NULL,
+            drawing_id TEXT REFERENCES drawing(id) ON DELETE SET NULL,
+            object_id TEXT REFERENCES cad_object(id) ON DELETE SET NULL,
+            class_code TEXT NOT NULL,
+            discipline TEXT,
+            task_name TEXT NOT NULL,
+            work_package TEXT,
+            location TEXT,
+            system_code TEXT,
+            priority INTEGER NOT NULL DEFAULT 100,
+            estimated_duration REAL,
+            crew_type TEXT,
+            source TEXT NOT NULL DEFAULT 'auto' CHECK (
+                source IN ('auto', 'manual', 'rule', 'import', 'parser', 'llm')
+            ),
+            confidence REAL NOT NULL DEFAULT 1.0 CHECK (confidence >= 0 AND confidence <= 1),
+            evidence_json TEXT,
+            status TEXT NOT NULL DEFAULT 'auto' CHECK (
+                status IN ('auto', 'review', 'ready', 'blocked', 'corrected', 'rejected', 'done')
+            ),
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+        """
+    )
+    connection.execute(
+        "CREATE INDEX IF NOT EXISTS idx_install_task_project ON install_task(project_id)"
+    )
+    connection.execute(
+        "CREATE INDEX IF NOT EXISTS idx_install_task_drawing ON install_task(drawing_id)"
+    )
+    connection.execute(
+        "CREATE INDEX IF NOT EXISTS idx_install_task_object ON install_task(object_id)"
+    )
+    connection.execute(
+        "CREATE INDEX IF NOT EXISTS idx_install_task_class ON install_task(class_code)"
+    )
+    connection.execute(
+        "CREATE INDEX IF NOT EXISTS idx_install_task_status ON install_task(status)"
+    )
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS install_dependency (
+            id TEXT PRIMARY KEY,
+            predecessor_task_id TEXT NOT NULL REFERENCES install_task(id) ON DELETE CASCADE,
+            successor_task_id TEXT NOT NULL REFERENCES install_task(id) ON DELETE CASCADE,
+            dependency_type TEXT NOT NULL CHECK (
+                dependency_type IN (
+                    'finish_to_start',
+                    'start_to_start',
+                    'inspection_before',
+                    'pressure_test_before',
+                    'power_before_commissioning',
+                    'profile_prerequisite'
+                )
+            ),
+            reason TEXT,
+            source TEXT NOT NULL DEFAULT 'auto' CHECK (
+                source IN ('auto', 'manual', 'rule', 'import', 'parser', 'llm')
+            ),
+            confidence REAL NOT NULL DEFAULT 1.0 CHECK (confidence >= 0 AND confidence <= 1),
+            evidence_json TEXT,
+            status TEXT NOT NULL DEFAULT 'auto' CHECK (
+                status IN ('auto', 'review', 'corrected', 'rejected')
+            ),
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+        """
+    )
+    connection.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_install_dependency_predecessor
+        ON install_dependency(predecessor_task_id)
+        """
+    )
+    connection.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_install_dependency_successor
+        ON install_dependency(successor_task_id)
+        """
+    )
+    connection.execute(
+        "CREATE INDEX IF NOT EXISTS idx_install_dependency_status ON install_dependency(status)"
+    )
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS install_instruction (
+            id TEXT PRIMARY KEY,
+            task_id TEXT NOT NULL REFERENCES install_task(id) ON DELETE CASCADE,
+            instruction_text TEXT NOT NULL,
+            generator TEXT NOT NULL DEFAULT 'template',
+            generator_version TEXT NOT NULL DEFAULT '0.1',
+            source_json TEXT,
+            created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+        """
+    )
+    connection.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_install_instruction_task
+        ON install_instruction(task_id)
+        """
+    )
 
 
 def add_columns(connection: sqlite3.Connection, table: str, columns: dict[str, str]) -> None:

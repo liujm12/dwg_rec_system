@@ -10,6 +10,9 @@ from .repositories import (
     BudgetItemRepository,
     CostItemRepository,
     DrawingRepository,
+    InstallDependencyRepository,
+    InstallInstructionRepository,
+    InstallTaskRepository,
     ObjectClassRepository,
     ProjectRepository,
     QuantityRepository,
@@ -22,6 +25,11 @@ from .services.budget import BudgetGenerator
 from .services.cost_items import CostItemSeeder
 from .services.data_quality import DataQualityChecker, filter_findings
 from .services.exports import CsvExporter
+from .services.installation import (
+    InstallDependencyGenerator,
+    InstallInstructionGenerator,
+    InstallTaskGenerator,
+)
 from .services.object_store import ObjectStore
 from .services.quantity import QuantityGenerator
 from .services.relation_engine import RelationEngine
@@ -293,6 +301,79 @@ def cmd_export_budget_csv(args: argparse.Namespace) -> None:
     print(f"exported: {output}")
 
 
+def cmd_generate_install_tasks(args: argparse.Namespace) -> None:
+    with session() as connection:
+        summary = InstallTaskGenerator(
+            connection,
+            low_confidence_threshold=args.low_confidence_threshold,
+        ).generate_tasks(
+            project_id=args.project_id,
+            drawing_id=args.drawing_id,
+        )
+    print(json.dumps(summary, ensure_ascii=False, indent=2))
+
+
+def cmd_generate_install_dependencies(args: argparse.Namespace) -> None:
+    with session() as connection:
+        summary = InstallDependencyGenerator(connection).generate_dependencies(
+            project_id=args.project_id,
+            drawing_id=args.drawing_id,
+        )
+    print(json.dumps(summary, ensure_ascii=False, indent=2))
+
+
+def cmd_generate_install_instructions(args: argparse.Namespace) -> None:
+    with session() as connection:
+        summary = InstallInstructionGenerator(connection).generate_instructions(
+            project_id=args.project_id,
+            drawing_id=args.drawing_id,
+        )
+    print(json.dumps(summary, ensure_ascii=False, indent=2))
+
+
+def cmd_list_install_tasks(args: argparse.Namespace) -> None:
+    with session() as connection:
+        rows = InstallTaskRepository(connection).list(
+            project_id=args.project_id,
+            drawing_id=args.drawing_id,
+            class_code=args.class_code,
+            status=args.status,
+        )
+    print(json.dumps(rows, ensure_ascii=False, indent=2))
+
+
+def cmd_list_install_dependencies(args: argparse.Namespace) -> None:
+    with session() as connection:
+        rows = InstallDependencyRepository(connection).list(
+            project_id=args.project_id,
+            drawing_id=args.drawing_id,
+            status=args.status,
+        )
+    print(json.dumps(rows, ensure_ascii=False, indent=2))
+
+
+def cmd_list_install_instructions(args: argparse.Namespace) -> None:
+    with session() as connection:
+        rows = InstallInstructionRepository(connection).list(
+            task_id=args.task_id,
+            project_id=args.project_id,
+            drawing_id=args.drawing_id,
+        )
+    print(json.dumps(rows, ensure_ascii=False, indent=2))
+
+
+def cmd_export_install_tasks_csv(args: argparse.Namespace) -> None:
+    with session() as connection:
+        output = CsvExporter(connection).export_install_tasks(
+            args.output,
+            project_id=args.project_id,
+            drawing_id=args.drawing_id,
+            class_code=args.class_code,
+            status=args.status,
+        )
+    print(f"exported: {output}")
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="CAD drawing recognition system database tools.")
     parser.add_argument("--db", default=None, help="Reserved for future use. Use DWG_REC_DB for now.")
@@ -470,6 +551,76 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["auto", "review", "matched", "unmatched", "corrected", "rejected"],
     )
     export_budget.set_defaults(func=cmd_export_budget_csv)
+
+    generate_install_tasks = subparsers.add_parser(
+        "generate-install-tasks",
+        help="Generate install_task rows from recognized objects and engineering profiles.",
+    )
+    generate_install_tasks.add_argument("--project-id")
+    generate_install_tasks.add_argument("--drawing-id")
+    generate_install_tasks.add_argument("--low-confidence-threshold", type=float, default=0.8)
+    generate_install_tasks.set_defaults(func=cmd_generate_install_tasks)
+
+    generate_install_dependencies = subparsers.add_parser(
+        "generate-install-dependencies",
+        help="Generate simple install_dependency rows from accepted relations.",
+    )
+    generate_install_dependencies.add_argument("--project-id")
+    generate_install_dependencies.add_argument("--drawing-id")
+    generate_install_dependencies.set_defaults(func=cmd_generate_install_dependencies)
+
+    generate_install_instructions = subparsers.add_parser(
+        "generate-install-instructions",
+        help="Generate deterministic install_instruction rows from tasks and dependencies.",
+    )
+    generate_install_instructions.add_argument("--project-id")
+    generate_install_instructions.add_argument("--drawing-id")
+    generate_install_instructions.set_defaults(func=cmd_generate_install_instructions)
+
+    list_install_tasks = subparsers.add_parser("list-install-tasks", help="List install tasks.")
+    list_install_tasks.add_argument("--project-id")
+    list_install_tasks.add_argument("--drawing-id")
+    list_install_tasks.add_argument("--class-code")
+    list_install_tasks.add_argument(
+        "--status",
+        choices=["auto", "review", "ready", "blocked", "corrected", "rejected", "done"],
+    )
+    list_install_tasks.set_defaults(func=cmd_list_install_tasks)
+
+    list_install_dependencies = subparsers.add_parser(
+        "list-install-dependencies",
+        help="List install dependencies.",
+    )
+    list_install_dependencies.add_argument("--project-id")
+    list_install_dependencies.add_argument("--drawing-id")
+    list_install_dependencies.add_argument(
+        "--status",
+        choices=["auto", "review", "corrected", "rejected"],
+    )
+    list_install_dependencies.set_defaults(func=cmd_list_install_dependencies)
+
+    list_install_instructions = subparsers.add_parser(
+        "list-install-instructions",
+        help="List generated install instructions.",
+    )
+    list_install_instructions.add_argument("--task-id")
+    list_install_instructions.add_argument("--project-id")
+    list_install_instructions.add_argument("--drawing-id")
+    list_install_instructions.set_defaults(func=cmd_list_install_instructions)
+
+    export_install_tasks = subparsers.add_parser(
+        "export-install-tasks-csv",
+        help="Export install tasks as CSV.",
+    )
+    export_install_tasks.add_argument("--output", default=str(Path("exports/install_tasks.csv")))
+    export_install_tasks.add_argument("--project-id")
+    export_install_tasks.add_argument("--drawing-id")
+    export_install_tasks.add_argument("--class-code")
+    export_install_tasks.add_argument(
+        "--status",
+        choices=["auto", "review", "ready", "blocked", "corrected", "rejected", "done"],
+    )
+    export_install_tasks.set_defaults(func=cmd_export_install_tasks_csv)
 
     return parser
 

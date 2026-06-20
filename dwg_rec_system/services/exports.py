@@ -258,6 +258,75 @@ class CsvExporter:
             writer.writerows(dict(row) for row in rows)
         return output
 
+    def export_install_tasks(
+        self,
+        path: str | Path,
+        project_id: str | None = None,
+        drawing_id: str | None = None,
+        class_code: str | None = None,
+        status: str | None = None,
+    ) -> Path:
+        output = Path(path)
+        output.parent.mkdir(parents=True, exist_ok=True)
+
+        conditions: list[str] = []
+        params: list[str] = []
+        if project_id:
+            conditions.append("project_id = ?")
+            params.append(project_id)
+        if drawing_id:
+            conditions.append("drawing_id = ?")
+            params.append(drawing_id)
+        if class_code:
+            conditions.append("class_code = ?")
+            params.append(class_code)
+        if status:
+            conditions.append("status = ?")
+            params.append(status)
+        where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+        rows = self.connection.execute(
+            f"""
+            SELECT
+                id,
+                project_id,
+                drawing_id,
+                object_id,
+                class_code,
+                discipline,
+                task_name,
+                work_package,
+                location,
+                system_code,
+                priority,
+                status,
+                confidence
+            FROM install_task
+            {where}
+            ORDER BY work_package, class_code, task_name, id
+            """,
+            params,
+        ).fetchall()
+        fields = [
+            "id",
+            "project_id",
+            "drawing_id",
+            "object_id",
+            "class_code",
+            "discipline",
+            "task_name",
+            "work_package",
+            "location",
+            "system_code",
+            "priority",
+            "status",
+            "confidence",
+        ]
+        with output.open("w", newline="", encoding="utf-8-sig") as file:
+            writer = csv.DictWriter(file, fieldnames=fields)
+            writer.writeheader()
+            writer.writerows(dict(row) for row in rows)
+        return output
+
 
 def _serialize_finding(finding: dict, fields: list[str]) -> dict:
     row = {field: finding.get(field) for field in fields}

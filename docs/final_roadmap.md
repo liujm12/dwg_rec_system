@@ -303,29 +303,15 @@ quantity_item
 
 Installation guidance should be generated from structured installation tasks, not only free-form text.
 
-Recommended tables:
+Round 7 durable tables:
 
 ```text
-install_template
 install_task
 install_dependency
 install_instruction
 ```
 
-`install_template` stores class-level default guidance:
-
-```text
-install_template
-- id
-- class_code
-- discipline
-- template_name
-- default_steps_json
-- required_tools_json
-- required_materials_json
-- quality_check_json
-- safety_notes_json
-```
+Class-level defaults currently remain in `engineering_class_profiles.json` under `installation.work_package`, `installation.default_steps`, and `installation.required_predecessors`. Promote them into a future `install_template` table only if repeated use proves the database shape.
 
 `install_task` stores project-specific tasks:
 
@@ -338,11 +324,14 @@ install_task
 - class_code
 - discipline
 - task_name
+- work_package
 - location
 - system_code
 - priority
 - estimated_duration
 - crew_type
+- source
+- confidence
 - status
 - evidence_json
 - created_at
@@ -358,8 +347,10 @@ install_dependency
 - successor_task_id
 - dependency_type
 - reason
-- confidence
 - source
+- confidence
+- evidence_json
+- status
 ```
 
 Common dependency types:
@@ -393,6 +384,8 @@ cad_object + relation + taxonomy installation profile
   -> install_dependency
   -> install_instruction
 ```
+
+Round 7 installation guidance is not a schedule optimizer. It records object-derived work, simple relation-based dependency evidence, and deterministic instruction text. Workflow graph planning and recommended sequencing belong to the next milestone.
 
 ## 4. Module Roadmap
 
@@ -804,15 +797,16 @@ Scope:
 
 ### M7: Installation Guidance
 
-Status: next.
+Status: complete.
 
 Scope:
 
-- add installation templates
-- generate `install_task`
-- generate `install_dependency`
-- generate readable installation instructions
-- support object-level and discipline-level installation guidance
+- add `install_task`, `install_dependency`, and `install_instruction`
+- keep class-level installation templates in `engineering_class_profiles.json`
+- generate object-level `install_task` rows from accepted objects and profiles
+- generate simple relation-based `install_dependency` rows from accepted relations
+- generate deterministic readable installation instructions
+- export installation tasks to CSV
 
 ### M8: Workflow Planning
 
@@ -883,7 +877,7 @@ The most practical sequence from the current repository state is:
 1. Complete quantity generation and quantity CSV export.
 2. Complete data quality checks for missing attributes, geometry, low confidence, and missing relations.
 3. Complete cost_item, budget_item, and budget generation.
-4. Add install_task and installation guidance.
+4. Complete install_task and installation guidance.
 5. Add workflow dependency planning.
 6. Add recognition modeling tables before real PDF/DWG parser work.
 7. Connect real DWG/DXF/PDF parser adapters.

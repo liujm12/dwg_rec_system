@@ -14,6 +14,7 @@ CAD/DWG/DXF/parser output
   -> quantity_item
   -> data quality findings
   -> budget_item
+  -> install_task + install_dependency + install_instruction
   -> exports and future engineering deliverables
 ```
 
@@ -41,8 +42,9 @@ The long-term roadmap covers multi-discipline equipment recognition, quantity ta
 - Quantity takeoff into durable `quantity_item` rows from engineering profiles, geometry, and attributes.
 - Data quality checks for missing attributes, missing geometry, low confidence, manual-review quantities, missing profiles, and missing accepted relations.
 - Budget generation from `quantity_item` and seeded `cost_item` rows.
+- Installation guidance from accepted objects, accepted relations, and `engineering_class_profiles.json` installation profiles.
 - Spatial queries for nearest, contains, and overlap.
-- CSV export for recognized objects, quantity rows, data quality findings, and budget rows.
+- CSV export for recognized objects, quantity rows, data quality findings, budget rows, and installation tasks.
 
 ## Quick Start
 
@@ -62,10 +64,17 @@ python -m dwg_rec_system.cli list-quality-findings
 python -m dwg_rec_system.cli seed-cost-items --input samples/demo_cost_items.json
 python -m dwg_rec_system.cli generate-budget
 python -m dwg_rec_system.cli list-budget-items
+python -m dwg_rec_system.cli generate-install-tasks
+python -m dwg_rec_system.cli generate-install-dependencies
+python -m dwg_rec_system.cli generate-install-instructions
+python -m dwg_rec_system.cli list-install-tasks
+python -m dwg_rec_system.cli list-install-dependencies
+python -m dwg_rec_system.cli list-install-instructions
 python -m dwg_rec_system.cli export-csv
 python -m dwg_rec_system.cli export-quantities-csv
 python -m dwg_rec_system.cli export-quality-findings-csv
 python -m dwg_rec_system.cli export-budget-csv
+python -m dwg_rec_system.cli export-install-tasks-csv
 ```
 
 Expected result:
@@ -78,10 +87,14 @@ Expected result:
 - data quality checks produce reviewable findings before budgeting
 - cost item seeding creates demo BMS price rules
 - budget generation creates auditable `budget_item` rows
+- installation task generation creates auditable `install_task` rows from profiled objects
+- accepted relations generate simple `install_dependency` hints when both sides have tasks
+- installation instruction generation creates deterministic template text in `install_instruction`
 - CSV export writes `exports/objects.csv`
 - quantity CSV export writes `exports/quantities.csv`
 - quality CSV export writes `exports/quality_findings.csv`
 - budget CSV export writes `exports/budget.csv`
+- installation task CSV export writes `exports/install_tasks.csv`
 
 ## Important Notes
 
@@ -100,6 +113,8 @@ The current `RelationEngine` accepts rule candidates immediately after creating 
 `check-data-quality` is not a durable review database. Round 5 recomputes findings from current objects, quantities, relations, and engineering profiles, then prints JSON or exports CSV. Budget generation should wait until findings are reviewed or accepted as known risk.
 
 `generate-budget` is deterministic prototype budgeting. It matches active cost items by `class_code` and `unit`, calculates material/labor/machine/total costs, and creates unmatched rows when no cost item can price a quantity. It does not mutate `quantity_item`.
+
+`generate-install-tasks` is deterministic installation guidance, not workflow planning. It creates one project-specific `install_task` for each active object with an installation profile. `generate-install-dependencies` uses only accepted `relation` rows for simple dependency hints. `generate-install-instructions` creates template text from structured task evidence; it is not LLM-generated.
 
 ## CLI Commands
 
@@ -129,6 +144,13 @@ The current `RelationEngine` accepts rule candidates immediately after creating 
 | `generate-budget [--project-id <id>] [--drawing-id <id>]` | Generate `budget_item` rows from quantity rows and cost items. |
 | `list-budget-items [--status <status>]` | List generated budget rows as JSON. |
 | `export-budget-csv [--output <file>]` | Export budget rows to CSV. |
+| `generate-install-tasks [--project-id <id>] [--drawing-id <id>]` | Generate `install_task` rows from objects and installation profiles. |
+| `generate-install-dependencies [--project-id <id>] [--drawing-id <id>]` | Generate simple `install_dependency` rows from accepted relations. |
+| `generate-install-instructions [--project-id <id>] [--drawing-id <id>]` | Generate deterministic installation instruction text. |
+| `list-install-tasks [--class-code <class>] [--status <status>]` | List installation tasks as JSON. |
+| `list-install-dependencies [--status <status>]` | List installation dependencies as JSON. |
+| `list-install-instructions [--task-id <id>]` | List generated installation instructions as JSON. |
+| `export-install-tasks-csv [--output <file>]` | Export installation tasks to CSV. |
 
 ## Sample Files
 
@@ -168,5 +190,6 @@ python -m dwg_rec_system.cli init-db
 - `docs/agent_tasks_round_4.md`: completed quantity takeoff task package.
 - `docs/agent_tasks_round_5.md`: completed data quality gate task package.
 - `docs/agent_tasks_round_6.md`: completed budgeting task package.
+- `docs/agent_tasks_round_7.md`: completed installation guidance task package.
 - `docs/taxonomy_profile.md`: taxonomy profile shape and usage guide.
 - `docs/final_roadmap.md`: long-term database and module roadmap for multi-discipline budgeting and installation planning.

@@ -18,9 +18,10 @@ The project currently has:
 - Quantity takeoff service that generates durable `quantity_item` rows from recognized objects, geometry, attributes, and engineering profiles.
 - Data quality checker that reports missing attributes, missing geometry, low confidence objects, manual-review quantities, missing profiles, and missing accepted relations.
 - Budget generation service that matches `quantity_item` rows to seeded `cost_item` rows and creates auditable `budget_item` rows.
-- CLI commands: `init-db`, `seed-taxonomy`, `import-json`, `seed-rules`, `seed-demo`, `list-objects`, `nearest`, `infer-relations`, `list-candidates`, `accept-candidate`, `reject-candidate`, `generate-quantities`, `list-quantities`, `check-data-quality`, `list-quality-findings`, `seed-cost-items`, `list-cost-items`, `generate-budget`, `list-budget-items`, `export-csv`, `export-quantities-csv`, `export-quality-findings-csv`, `export-budget-csv`.
+- Installation guidance service that generates `install_task`, `install_dependency`, and deterministic `install_instruction` rows from accepted objects, accepted relations, and engineering installation profiles.
+- CLI commands: `init-db`, `seed-taxonomy`, `import-json`, `seed-rules`, `seed-demo`, `list-objects`, `nearest`, `infer-relations`, `list-candidates`, `accept-candidate`, `reject-candidate`, `generate-quantities`, `list-quantities`, `check-data-quality`, `list-quality-findings`, `seed-cost-items`, `list-cost-items`, `generate-budget`, `list-budget-items`, `generate-install-tasks`, `generate-install-dependencies`, `generate-install-instructions`, `list-install-tasks`, `list-install-dependencies`, `list-install-instructions`, `export-csv`, `export-quantities-csv`, `export-quality-findings-csv`, `export-budget-csv`, `export-install-tasks-csv`.
 - Cleanroom CAD taxonomy JSON v0.2.0 with 164 object classes.
-- Test coverage for import, taxonomy, rule seeding, candidate review, integration, taxonomy structure, baseline relation flow, quantity generation, quantity export, data quality checks, quality export, cost item seeding, budget generation, and budget export.
+- Test coverage for import, taxonomy, rule seeding, candidate review, integration, taxonomy structure, baseline relation flow, quantity generation, quantity export, data quality checks, quality export, cost item seeding, budget generation, budget export, installation task generation, installation dependency generation, installation instructions, and installation task export.
 
 Milestone 1 and Milestone 2 are complete. The current system can import normalized parser output, validate classes against taxonomy, seed rules, infer one demo relation, review relation candidates, and export CSV.
 
@@ -232,7 +233,7 @@ Success criteria:
 
 ## Milestone 7: Installation Guidance
 
-Status: NEXT.
+Status: COMPLETE.
 
 Goal:
 
@@ -243,13 +244,15 @@ cad_object + relation + taxonomy installation profile
   -> install_instruction
 ```
 
-Candidate work:
+Completed:
 
-- Add installation template and task tables through an explicit architecture task.
-- Add `services/installation.py`.
-- Generate object-level installation tasks from taxonomy profiles.
-- Generate simple dependencies from accepted relations.
-- Generate readable installation instructions.
+- Added `install_task`, `install_dependency`, and `install_instruction`.
+- Added repository support for installation rows and regeneration cleanup.
+- Added `services/installation.py`.
+- Generate object-level installation tasks from `engineering_class_profiles.json` installation profiles.
+- Generate simple dependencies from accepted `relation` rows.
+- Generate deterministic readable installation instructions.
+- Expose `generate-install-tasks`, `generate-install-dependencies`, `generate-install-instructions`, `list-install-tasks`, `list-install-dependencies`, `list-install-instructions`, and `export-install-tasks-csv`.
 
 Success criteria:
 
@@ -257,7 +260,32 @@ Success criteria:
 - Relations can produce dependency hints.
 - Installation instructions cite source objects and relation evidence.
 
-## Milestone 8: Recognition Modeling Layer
+## Milestone 8: Workflow Planning
+
+Status: NEXT.
+
+Goal:
+
+```text
+install_task + install_dependency
+  -> workflow graph
+  -> recommended installation sequence
+```
+
+Candidate work:
+
+- Group installation tasks by discipline, area, system, and dependency.
+- Produce a simple dependency graph from existing installation tasks.
+- Detect missing prerequisites and blocked tasks.
+- Generate a recommended installation sequence without changing object recognition data.
+
+Success criteria:
+
+- Installation guidance can be ordered into a reviewable plan.
+- The plan remains explainable from tasks and dependencies.
+- No optimized scheduling or crew/resource allocation is added until the graph boundary is stable.
+
+## Milestone 9: Recognition Modeling Layer
 
 Status: PLANNED.
 
@@ -286,7 +314,7 @@ Success criteria:
 - Accepted objects are traceable back to recognition evidence.
 - Parser/model output does not write directly to `cad_object`.
 
-## Milestone 9: Parser Adapter Layer
+## Milestone 10: Parser Adapter Layer
 
 Status: PLANNED.
 
@@ -307,7 +335,7 @@ Success criteria:
 - A real or representative parsed file imports through the same `import-json` path.
 - No parser-specific code leaks into `ObjectStore`.
 
-## Milestone 10: Stronger Rule Inference
+## Milestone 11: Stronger Rule Inference
 
 Status: PLANNED.
 
@@ -339,7 +367,7 @@ Success criteria:
 - Accepted relations preserve evidence.
 - Tests cover each new rule type.
 
-## Milestone 11: Review And Correction Workflow
+## Milestone 12: Review And Correction Workflow
 
 Status: PLANNED.
 
@@ -358,7 +386,7 @@ Success criteria:
 - Manual correction marks old relation state and creates audit records.
 - Candidate review and manual correction can be performed without direct SQL.
 
-## Milestone 12: API Layer
+## Milestone 13: API Layer
 
 Status: PLANNED.
 
@@ -377,7 +405,7 @@ Success criteria:
 - API calls use the same service layer as CLI.
 - No duplicate import, inference, quantity, budget, or installation logic.
 
-## Milestone 13: Local LLM Inference Layer
+## Milestone 14: Local LLM Inference Layer
 
 Status: PLANNED.
 
@@ -397,7 +425,7 @@ Success criteria:
 - LLM output never writes directly to `relation`.
 - LLM service can be disabled without breaking deterministic workflows.
 
-## Milestone 14: Production Database Path
+## Milestone 15: Production Database Path
 
 Status: PLANNED.
 
@@ -419,6 +447,6 @@ Success criteria:
 
 ## Near-Term Priority
 
-Do installation guidance next.
+Do workflow planning next.
 
-The quantity, data quality, and budgeting layers are now in place. The next practical step is to design installation templates and generated installation tasks on top of accepted objects, relations, and engineering profiles. Do not start workflow dependency planning, real DWG/DXF/PDF parsing, API, LLM, or PostGIS implementation before the installation guidance boundary is defined.
+The quantity, data quality, budgeting, and installation guidance layers are now in place. The next practical step is to turn generated installation tasks and simple dependencies into a reviewable workflow graph and recommended sequence. Do not start real DWG/DXF/PDF parsing, API, LLM, or PostGIS implementation before the workflow planning boundary is defined.

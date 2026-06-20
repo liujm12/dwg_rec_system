@@ -940,6 +940,302 @@ class BudgetItemRepository:
         return [dict(row) for row in rows]
 
 
+class InstallTaskRepository:
+    def __init__(self, connection: sqlite3.Connection):
+        self.connection = connection
+
+    def create(
+        self,
+        class_code: str,
+        task_name: str,
+        project_id: str | None = None,
+        drawing_id: str | None = None,
+        object_id: str | None = None,
+        discipline: str | None = None,
+        work_package: str | None = None,
+        location: str | None = None,
+        system_code: str | None = None,
+        priority: int = 100,
+        estimated_duration: float | None = None,
+        crew_type: str | None = None,
+        source: str = "auto",
+        confidence: float = 1.0,
+        evidence: dict[str, Any] | None = None,
+        status: str = "auto",
+    ) -> str:
+        task_id = new_id("itask")
+        self.connection.execute(
+            """
+            INSERT INTO install_task(
+                id, project_id, drawing_id, object_id, class_code, discipline,
+                task_name, work_package, location, system_code, priority,
+                estimated_duration, crew_type, source, confidence, evidence_json, status
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                task_id,
+                project_id,
+                drawing_id,
+                object_id,
+                class_code,
+                discipline,
+                task_name,
+                work_package,
+                location,
+                system_code,
+                priority,
+                estimated_duration,
+                crew_type,
+                source,
+                confidence,
+                json.dumps(evidence, ensure_ascii=False) if evidence else None,
+                status,
+            ),
+        )
+        return task_id
+
+    def clear_auto(
+        self,
+        project_id: str | None = None,
+        drawing_id: str | None = None,
+    ) -> int:
+        conditions = ["source = 'auto'", "status IN ('auto', 'review', 'ready', 'blocked')"]
+        params: list[Any] = []
+        if project_id:
+            conditions.append("project_id = ?")
+            params.append(project_id)
+        if drawing_id:
+            conditions.append("drawing_id = ?")
+            params.append(drawing_id)
+        cursor = self.connection.execute(
+            f"DELETE FROM install_task WHERE {' AND '.join(conditions)}",
+            params,
+        )
+        return cursor.rowcount
+
+    def list(
+        self,
+        project_id: str | None = None,
+        drawing_id: str | None = None,
+        class_code: str | None = None,
+        status: str | None = None,
+    ) -> list[dict[str, Any]]:
+        conditions: list[str] = []
+        params: list[Any] = []
+        if project_id:
+            conditions.append("project_id = ?")
+            params.append(project_id)
+        if drawing_id:
+            conditions.append("drawing_id = ?")
+            params.append(drawing_id)
+        if class_code:
+            conditions.append("class_code = ?")
+            params.append(class_code)
+        if status:
+            conditions.append("status = ?")
+            params.append(status)
+
+        where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+        rows = self.connection.execute(
+            f"""
+            SELECT *
+            FROM install_task
+            {where}
+            ORDER BY work_package, class_code, task_name, id
+            """,
+            params,
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+
+class InstallDependencyRepository:
+    def __init__(self, connection: sqlite3.Connection):
+        self.connection = connection
+
+    def create(
+        self,
+        predecessor_task_id: str,
+        successor_task_id: str,
+        dependency_type: str,
+        reason: str | None = None,
+        source: str = "auto",
+        confidence: float = 1.0,
+        evidence: dict[str, Any] | None = None,
+        status: str = "auto",
+    ) -> str:
+        dependency_id = new_id("idep")
+        self.connection.execute(
+            """
+            INSERT INTO install_dependency(
+                id, predecessor_task_id, successor_task_id, dependency_type,
+                reason, source, confidence, evidence_json, status
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                dependency_id,
+                predecessor_task_id,
+                successor_task_id,
+                dependency_type,
+                reason,
+                source,
+                confidence,
+                json.dumps(evidence, ensure_ascii=False) if evidence else None,
+                status,
+            ),
+        )
+        return dependency_id
+
+    def clear_auto(
+        self,
+        project_id: str | None = None,
+        drawing_id: str | None = None,
+    ) -> int:
+        conditions = ["source = 'auto'", "status IN ('auto', 'review')"]
+        params: list[Any] = []
+        if project_id or drawing_id:
+            task_conditions: list[str] = []
+            if project_id:
+                task_conditions.append("project_id = ?")
+                params.append(project_id)
+            if drawing_id:
+                task_conditions.append("drawing_id = ?")
+                params.append(drawing_id)
+            task_where = " AND ".join(task_conditions)
+            conditions.append(
+                f"""
+                (
+                    predecessor_task_id IN (SELECT id FROM install_task WHERE {task_where})
+                    OR successor_task_id IN (SELECT id FROM install_task WHERE {task_where})
+                )
+                """
+            )
+            params.extend(params.copy())
+        cursor = self.connection.execute(
+            f"DELETE FROM install_dependency WHERE {' AND '.join(conditions)}",
+            params,
+        )
+        return cursor.rowcount
+
+    def list(
+        self,
+        project_id: str | None = None,
+        drawing_id: str | None = None,
+        status: str | None = None,
+    ) -> list[dict[str, Any]]:
+        conditions: list[str] = []
+        params: list[Any] = []
+        if project_id:
+            conditions.append("(pt.project_id = ? OR st.project_id = ?)")
+            params.extend([project_id, project_id])
+        if drawing_id:
+            conditions.append("(pt.drawing_id = ? OR st.drawing_id = ?)")
+            params.extend([drawing_id, drawing_id])
+        if status:
+            conditions.append("d.status = ?")
+            params.append(status)
+        where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+        rows = self.connection.execute(
+            f"""
+            SELECT d.*
+            FROM install_dependency d
+            LEFT JOIN install_task pt ON pt.id = d.predecessor_task_id
+            LEFT JOIN install_task st ON st.id = d.successor_task_id
+            {where}
+            ORDER BY d.status, d.dependency_type, d.id
+            """,
+            params,
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+
+class InstallInstructionRepository:
+    def __init__(self, connection: sqlite3.Connection):
+        self.connection = connection
+
+    def create(
+        self,
+        task_id: str,
+        instruction_text: str,
+        generator: str = "template",
+        generator_version: str = "0.1",
+        source: dict[str, Any] | None = None,
+    ) -> str:
+        instruction_id = new_id("iins")
+        self.connection.execute(
+            """
+            INSERT INTO install_instruction(
+                id, task_id, instruction_text, generator, generator_version, source_json
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (
+                instruction_id,
+                task_id,
+                instruction_text,
+                generator,
+                generator_version,
+                json.dumps(source, ensure_ascii=False) if source else None,
+            ),
+        )
+        return instruction_id
+
+    def clear_auto(
+        self,
+        project_id: str | None = None,
+        drawing_id: str | None = None,
+    ) -> int:
+        conditions = ["generator = 'template'"]
+        params: list[Any] = []
+        if project_id or drawing_id:
+            task_conditions: list[str] = []
+            if project_id:
+                task_conditions.append("project_id = ?")
+                params.append(project_id)
+            if drawing_id:
+                task_conditions.append("drawing_id = ?")
+                params.append(drawing_id)
+            conditions.append(
+                f"task_id IN (SELECT id FROM install_task WHERE {' AND '.join(task_conditions)})"
+            )
+        cursor = self.connection.execute(
+            f"DELETE FROM install_instruction WHERE {' AND '.join(conditions)}",
+            params,
+        )
+        return cursor.rowcount
+
+    def list(
+        self,
+        task_id: str | None = None,
+        project_id: str | None = None,
+        drawing_id: str | None = None,
+    ) -> list[dict[str, Any]]:
+        conditions: list[str] = []
+        params: list[Any] = []
+        if task_id:
+            conditions.append("i.task_id = ?")
+            params.append(task_id)
+        if project_id:
+            conditions.append("t.project_id = ?")
+            params.append(project_id)
+        if drawing_id:
+            conditions.append("t.drawing_id = ?")
+            params.append(drawing_id)
+        where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+        rows = self.connection.execute(
+            f"""
+            SELECT i.*
+            FROM install_instruction i
+            LEFT JOIN install_task t ON t.id = i.task_id
+            {where}
+            ORDER BY t.work_package, t.class_code, i.created_at, i.id
+            """,
+            params,
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+
 class RuleTemplateRepository:
     def __init__(self, connection: sqlite3.Connection):
         self.connection = connection
