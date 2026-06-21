@@ -1,0 +1,68 @@
+{
+  "source": {
+    "uri": "samples/demo_parser_output.pdf",
+    "type": "pdf",
+    "title": "Demo parser adapter source"
+  },
+  "pages": [
+    {
+      "page_no": 1,
+      "width": 420,
+      "height": 297,
+      "unit": "mm",
+      "scale": "1:100",
+      "entities": [
+        {
+          "id": "box-cp01",
+          "type": "rect",
+          "bbox": {
+            "min_x": 100,
+            "min_y": 100,
+            "max_x": 160,
+            "max_y": 180
+          },
+          "style": {
+            "layer": "E-BMS",
+            "color": "7"
+          }
+        },
+        {
+          "id": "label-cp01",
+          "type": "text",
+          "text": "CP-01",
+          "bbox": {
+            "min_x": 104,
+            "min_y": 84,
+            "max_x": 152,
+            "max_y": 98
+          },
+          "style": {
+            "layer": "E-TEXT"
+          }
+        }
+      ],
+      "detections": [
+        {
+          "id": "det-cp01",
+          "class_code": "CONTROL_PANEL",
+          "label": "control panel",
+          "confidence": 0.91,
+          "bbox": {
+            "min_x": 100,
+            "min_y": 100,
+            "max_x": 160,
+            "max_y": 180
+          },
+          "entity_ids": [
+            "box-cp01",
+            "label-cp01"
+          ],
+          "attributes": {
+            "tag": "CP-01",
+            "system": "BMS"
+          }
+        }
+      ]
+    }
+  ]
+}

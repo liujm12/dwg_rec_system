@@ -37,6 +37,7 @@ The long-term roadmap covers multi-discipline equipment recognition, quantity ta
 - SQLite schema for projects, drawings, objects, geometry, CAD metadata, attributes, rules, candidates, relations, corrections, and artifacts.
 - Normalized JSON importer for parser-agnostic CAD recognition output.
 - Recognition modeling layer for source documents, pages, primitives, candidates, object hypotheses, and hypothesis acceptance.
+- Parser adapter boundary for converting parser-like source output into recognition payloads.
 - Idempotent object import by `source_file + handle`.
 - Taxonomy seeding from `dwg_rec_system/taxonomy/cad_object_taxonomy.json`.
 - Engineering class profiles from `dwg_rec_system/taxonomy/engineering_class_profiles.json`.
@@ -80,6 +81,8 @@ python -m dwg_rec_system.cli list-workflow-plans
 python -m dwg_rec_system.cli list-workflow-steps
 python -m dwg_rec_system.cli list-workflow-issues
 python -m dwg_rec_system.cli import-recognition-json --input samples/demo_recognition.json
+python -m dwg_rec_system.cli list-parser-adapters
+python -m dwg_rec_system.cli import-parser-output --input samples/demo_parser_output.json --adapter sample-json
 python -m dwg_rec_system.cli list-source-documents
 python -m dwg_rec_system.cli list-recognition-candidates
 python -m dwg_rec_system.cli list-object-hypotheses
@@ -108,6 +111,7 @@ Expected result:
 - installation instruction generation creates deterministic template text in `install_instruction`
 - workflow planning creates `workflow_plan`, ordered `workflow_step` rows, and reviewable `workflow_issue` rows
 - recognition import creates source/page/primitive/candidate/hypothesis records without creating final objects
+- parser adapter import converts representative parser output into the same recognition records without creating final objects
 - CSV export writes `exports/objects.csv`
 - recognition CSV export writes `exports/recognition_candidates.csv` and `exports/object_hypotheses.csv`
 - quantity CSV export writes `exports/quantities.csv`
@@ -139,6 +143,8 @@ The current `RelationEngine` accepts rule candidates immediately after creating 
 `generate-workflow-plan` is deterministic workflow planning, not a construction schedule. It topologically orders installation tasks from `install_dependency`, records review/blocking issues, and writes ordered `workflow_step` rows. It does not calculate dates, critical path, manpower, shifts, or optimized crew/resource allocation.
 
 `import-recognition-json` imports recognition evidence and hypotheses, not final engineering objects. A hypothesis becomes a `cad_object` only through `accept-hypothesis`, which calls `ObjectStore` and records the mapping in `hypothesis_to_object`. Round 9 still does not parse real PDFs, DWGs, DXFs, images, or OCR/model outputs.
+
+`import-parser-output` imports through a parser adapter boundary. The bundled `sample-json` adapter is a deterministic representative adapter used to prove the contract from parser-like output into recognition records. It is not a real PDF, DWG, DXF, image, OCR, or CV parser, and it does not create `cad_object` rows automatically.
 
 ## CLI Commands
 
@@ -181,6 +187,8 @@ The current `RelationEngine` accepts rule candidates immediately after creating 
 | `list-workflow-issues [--plan-id <id>] [--severity <level>]` | List workflow planning issues as JSON. |
 | `export-workflow-plan-csv [--plan-id <id>] [--output <file>]` | Export ordered workflow steps to CSV. |
 | `import-recognition-json --input <file>` | Import recognition evidence JSON without creating final objects. |
+| `list-parser-adapters` | List available parser adapters. |
+| `import-parser-output --input <file> [--adapter sample-json]` | Import parser-like output through an adapter into recognition records. |
 | `list-source-documents [--status <status>]` | List recognition source documents as JSON. |
 | `list-recognition-candidates [--class-code <class>] [--status <status>]` | List recognition candidates as JSON. |
 | `list-object-hypotheses [--class-code <class>] [--status <status>]` | List object hypotheses as JSON. |
@@ -192,6 +200,7 @@ The current `RelationEngine` accepts rule candidates immediately after creating 
 
 - `samples/demo_parsed.json`: normalized parser output with one control panel and one DDC controller.
 - `samples/demo_recognition.json`: synthetic recognition evidence with primitives, a candidate, and an object hypothesis.
+- `samples/demo_parser_output.json`: representative parser-adapter input converted into recognition evidence by `sample-json`.
 - `samples/demo_rules.json`: one spatial rule that infers `DDC mounted_on CONTROL_PANEL`.
 - `samples/demo_cost_items.json`: demo cost item library for CONTROL_PANEL and DDC quantities.
 - `dwg_rec_system/taxonomy/cad_object_taxonomy.json`: primary CAD object taxonomy and the source for `object_class`.
@@ -229,6 +238,8 @@ python -m dwg_rec_system.cli init-db
 - `docs/agent_tasks_round_6.md`: completed budgeting task package.
 - `docs/agent_tasks_round_7.md`: completed installation guidance task package.
 - `docs/agent_tasks_round_8.md`: completed workflow planning task package.
+- `docs/agent_tasks_round_9.md`: completed recognition modeling task package.
+- `docs/agent_tasks_round_10.md`: completed parser adapter boundary task package.
 - `docs/agent_tasks_round_9.md`: completed recognition modeling task package.
 - `docs/taxonomy_profile.md`: taxonomy profile shape and usage guide.
 - `docs/final_roadmap.md`: long-term database and module roadmap for multi-discipline budgeting and installation planning.

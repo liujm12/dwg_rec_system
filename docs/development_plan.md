@@ -324,28 +324,31 @@ Success criteria:
 
 ## Milestone 10: Parser Adapter Layer
 
-Status: NEXT.
+Status: COMPLETE.
 
 Goal:
 
 Connect real CAD parsing output without changing the object store contract.
 
-Candidate work:
+Completed:
 
-- Add parser adapter interfaces under `dwg_rec_system/importers/`, `dwg_rec_system/parsers/`, or a future recognition package.
-- Support DXF first if DWG tooling is unavailable locally.
-- Support PDF primitive extraction after recognition modeling boundaries are defined.
-- Convert block, text, line, polyline, and bbox records into normalized JSON.
-- Preserve parser metadata in `cad_meta.raw_meta` or import job stats.
+- Added parser adapter interfaces under `dwg_rec_system/parsers/`.
+- Added `sample-json` as a representative adapter that converts parser-like output into recognition payloads.
+- Added `ParserImportService` so adapter output flows through `RecognitionImportService`.
+- Added `list-parser-adapters` and `import-parser-output` CLI commands.
+- Added `samples/demo_parser_output.json`.
+- Preserved parser metadata in recognition source/candidate/hypothesis evidence.
+- Kept parser imports out of `cad_object`; hypotheses still require explicit acceptance.
 
 Success criteria:
 
-- A real or representative parsed file imports through the same `import-json` path.
+- A representative parsed file imports through the recognition path.
 - No parser-specific code leaks into `ObjectStore`.
+- Parser adapter output does not create final objects automatically.
 
 ## Milestone 11: Stronger Rule Inference
 
-Status: PLANNED.
+Status: NEXT.
 
 Goal:
 
@@ -455,6 +458,6 @@ Success criteria:
 
 ## Near-Term Priority
 
-Do parser adapter design next.
+Do stronger rule inference next.
 
-The quantity, data quality, budgeting, installation guidance, workflow planning, and recognition modeling layers are now in place. The next practical step is to design a parser adapter boundary that writes into recognition payloads or the normalized import path. Do not start API, UI, LLM, or PostGIS implementation before the parser adapter boundary is defined.
+The quantity, data quality, budgeting, installation guidance, workflow planning, recognition modeling, and parser adapter boundary layers are now in place. The next practical step is to improve deterministic relation inference across containment, overlap, labels, and installation-oriented relation types. Real DXF/PDF parser adapters can be connected through the new parser boundary when parser dependencies and sample files are chosen.

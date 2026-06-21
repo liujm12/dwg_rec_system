@@ -134,7 +134,9 @@ Concepts:
 
 Recognition models, PDF parsers, OCR, and geometric grouping should not write directly to `cad_object` as final truth. They should preserve candidates and evidence until a deterministic rule, confidence threshold, or human review accepts a hypothesis.
 
-The current database implements the first version of these recognition tables. Real PDF/DWG/DXF parser adapters should write into this layer or produce compatible recognition payloads before accepted hypotheses enter the object store.
+The current database implements the first version of these recognition tables. Parser adapters should write into this layer or produce compatible recognition payloads before accepted hypotheses enter the object store.
+
+The parser adapter boundary now exists under `dwg_rec_system/parsers/`. The initial `sample-json` adapter converts representative parser-like JSON into the recognition payload consumed by `RecognitionImportService`. This proves the contract for future DXF, DWG, PDF, image, OCR, or CV adapters without adding parser-specific behavior to `ObjectStore` and without auto-creating final `cad_object` rows.
 
 Recognition evidence should preserve:
 

@@ -37,6 +37,7 @@ from .services.installation import (
     InstallTaskGenerator,
 )
 from .services.object_store import ObjectStore
+from .services.parser_import import ParserImportService, list_parser_adapters
 from .services.quantity import QuantityGenerator
 from .services.recognition import HypothesisAcceptanceService, RecognitionImportService
 from .services.relation_engine import RelationEngine
@@ -500,6 +501,19 @@ def cmd_export_object_hypotheses_csv(args: argparse.Namespace) -> None:
     print(f"exported: {output}")
 
 
+def cmd_list_parser_adapters(_: argparse.Namespace) -> None:
+    print(json.dumps(list_parser_adapters(), ensure_ascii=False, indent=2))
+
+
+def cmd_import_parser_output(args: argparse.Namespace) -> None:
+    with session() as connection:
+        summary = ParserImportService(connection).import_file(
+            args.input,
+            adapter_name=args.adapter,
+        )
+    print(json.dumps(summary, ensure_ascii=False, indent=2))
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="CAD drawing recognition system database tools.")
     parser.add_argument("--db", default=None, help="Reserved for future use. Use DWG_REC_DB for now.")
@@ -897,6 +911,20 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["pending", "accepted", "rejected", "merged", "superseded"],
     )
     export_object_hypotheses.set_defaults(func=cmd_export_object_hypotheses_csv)
+
+    list_adapters = subparsers.add_parser(
+        "list-parser-adapters",
+        help="List available parser adapters.",
+    )
+    list_adapters.set_defaults(func=cmd_list_parser_adapters)
+
+    import_parser = subparsers.add_parser(
+        "import-parser-output",
+        help="Import parser-like output through a parser adapter into recognition records.",
+    )
+    import_parser.add_argument("--input", required=True, help="Path to parser output JSON file.")
+    import_parser.add_argument("--adapter", default="sample-json", help="Parser adapter name.")
+    import_parser.set_defaults(func=cmd_import_parser_output)
 
     return parser
 

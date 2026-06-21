@@ -177,7 +177,9 @@ Responsibilities:
 - allow review, rejection, merge, and supersession before creating final objects
 - map accepted hypotheses to `cad_object` through `hypothesis_to_object`
 
-This layer is especially important for PDF CAD drawings because CAD handles, blocks, and layers may be missing or unreliable. Real parser adapters should write compatible recognition payloads or records into this layer before accepted hypotheses enter `ObjectStore`.
+This layer is especially important for PDF CAD drawings because CAD handles, blocks, and layers may be missing or unreliable. Parser adapters should write compatible recognition payloads or records into this layer before accepted hypotheses enter `ObjectStore`.
+
+The first parser adapter boundary is now in place. The bundled `sample-json` adapter is a representative contract adapter: it converts parser-like source output into source documents, pages, primitives, recognition candidates, and object hypotheses. It is not a real PDF/DWG/DXF parser, and it does not auto-accept hypotheses into `cad_object`.
 
 ### 3.4 Engineering Quantity Tables
 
@@ -922,21 +924,33 @@ Success criteria:
 - final objects remain traceable back to recognition evidence
 - no model/parser writes directly to `cad_object` without the acceptance boundary
 
-### M10: Real Parser Adapter Layer
+### M10: Parser Adapter Boundary
+
+Status: complete.
+
+Scope:
+
+- add parser adapter interfaces
+- add a representative parser adapter
+- convert parser-like output into recognition payloads
+- preserve parser metadata in recognition evidence
+- keep ObjectStore unchanged
+
+The boundary is ready for real DXF, DWG, PDF, image, OCR, or CV adapters when those parser dependencies and source samples are selected.
+
+### M11: Stronger Rule Inference
 
 Status: next.
 
 Scope:
 
-- add DXF or DWG parser adapter
-- add PDF primitive extraction only after recognition modeling boundaries are defined
-- convert parser output into normalized JSON
-- preserve parser metadata in `cad_meta.raw_meta`
-- keep ObjectStore unchanged
+- add containment and overlap relation strategies
+- add text-to-object label binding
+- add class-compatible relation templates
+- preserve relation evidence in candidates
+- keep accepted relations auditable
 
-Do this only after the normalized import, relation workflow, and recognition modeling boundaries are stable.
-
-### M11: API And UI
+### M12: API And UI
 
 Scope:
 
@@ -957,8 +971,10 @@ The most practical sequence from the current repository state is:
 4. Complete install_task and installation guidance.
 5. Complete workflow dependency planning.
 6. Complete recognition modeling tables before real PDF/DWG parser work.
-7. Connect real DWG/DXF/PDF parser adapters.
-8. Add API and UI.
+7. Complete parser adapter boundary.
+8. Strengthen deterministic relation inference.
+9. Connect real DWG/DXF/PDF parser adapters.
+10. Add API and UI.
 ```
 
 This order keeps the data foundation strong. Budgeting and installation planning depend on object identity, attributes, geometry, and relations. If those are weak, upper-layer outputs will become fragile flat reports instead of useful engineering workflows.
