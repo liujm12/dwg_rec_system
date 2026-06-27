@@ -940,17 +940,28 @@ The boundary is ready for real DXF, DWG, PDF, image, OCR, or CV adapters when th
 
 ### M11: Stronger Rule Inference
 
-Status: next.
+Status: complete.
 
 Scope:
 
 - add containment and overlap relation strategies
 - add text-to-object label binding
-- add class-compatible relation templates
+- add strategy selection through rule template config
 - preserve relation evidence in candidates
 - keep accepted relations auditable
 
-### M12: API And UI
+### M12: Review And Correction Workflow
+
+Status: next.
+
+Scope:
+
+- make pending relation and recognition candidates easier to review
+- add correction workflow around accepted relations and object attributes
+- preserve operator, reason, old value, and new value in audit records
+- keep downstream budget, installation, and workflow services consuming accepted truth by default
+
+### M13: API And UI
 
 Scope:
 
@@ -973,8 +984,9 @@ The most practical sequence from the current repository state is:
 6. Complete recognition modeling tables before real PDF/DWG parser work.
 7. Complete parser adapter boundary.
 8. Strengthen deterministic relation inference.
-9. Connect real DWG/DXF/PDF parser adapters.
-10. Add API and UI.
+9. Improve review and correction workflow.
+10. Connect real DWG/DXF/PDF parser adapters.
+11. Add API and UI.
 ```
 
 This order keeps the data foundation strong. Budgeting and installation planning depend on object identity, attributes, geometry, and relations. If those are weak, upper-layer outputs will become fragile flat reports instead of useful engineering workflows.

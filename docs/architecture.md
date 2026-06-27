@@ -87,10 +87,14 @@ Use `namespace`, `normalized_value`, `unit`, and `is_inferred` when adding riche
 Examples:
 
 - a rule suggests `DCC mounted_on DCC_RACK`
+- a bbox containment strategy suggests `ROOM contains CONTROL_PANEL`
+- a text label strategy suggests `TEXT_LABEL labels CONTROL_PANEL`
 - an LLM suggests `TEXT_LABEL labels VALVE`
 - a parser suggests `CABLE connects PANEL`
 
 Candidate relation records can be accepted, rejected, or superseded. This table is the buffer between uncertain inference and final engineering truth.
+
+The deterministic rule engine supports legacy nearest-neighbor rules plus stronger Round 11 strategies for bbox containment, bbox overlap, and text label binding. Legacy nearest rules keep the earlier auto-accept behavior for compatibility. Newer strategy rules should default to pending candidates unless their rule config explicitly opts into auto-acceptance. Evidence must preserve strategy names, thresholds, computed ratios, distances, and source/target geometry.
 
 ### Relation
 

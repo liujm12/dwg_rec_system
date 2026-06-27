@@ -43,6 +43,7 @@ The long-term roadmap covers multi-discipline equipment recognition, quantity ta
 - Engineering class profiles from `dwg_rec_system/taxonomy/engineering_class_profiles.json`.
 - Rule template seeding from JSON.
 - Rule-based relation inference through `relation_candidate -> relation`.
+- Stronger deterministic relation inference for bbox containment, bbox overlap, and text label binding.
 - Candidate review CLI for listing, accepting, and rejecting relation candidates.
 - Quantity takeoff into durable `quantity_item` rows from engineering profiles, geometry, and attributes.
 - Data quality checks for missing attributes, missing geometry, low confidence, manual-review quantities, missing profiles, and missing accepted relations.
@@ -61,6 +62,10 @@ python -m dwg_rec_system.cli init-db
 python -m dwg_rec_system.cli seed-taxonomy
 python -m dwg_rec_system.cli import-json --input samples/demo_parsed.json --strict-taxonomy
 python -m dwg_rec_system.cli seed-rules --input samples/demo_rules.json
+python -m dwg_rec_system.cli infer-relations
+python -m dwg_rec_system.cli list-candidates
+python -m dwg_rec_system.cli import-json --input samples/demo_round11_relations.json --strict-taxonomy
+python -m dwg_rec_system.cli seed-rules --input samples/demo_round11_rules.json
 python -m dwg_rec_system.cli infer-relations
 python -m dwg_rec_system.cli list-candidates
 python -m dwg_rec_system.cli generate-quantities
@@ -102,6 +107,7 @@ Expected result:
 - JSON import creates the demo control panel and DDC objects
 - rule seeding creates or skips one `mounted_on` rule
 - relation inference creates one accepted candidate and one final relation
+- Round 11 rule samples create pending containment, overlap, and label candidates with auditable evidence
 - quantity generation creates auditable `quantity_item` rows from `engineering_class_profiles.json`
 - data quality checks produce reviewable findings before budgeting
 - cost item seeding creates demo BMS price rules
@@ -130,7 +136,9 @@ Expected result:
 
 Without `--strict-taxonomy`, unknown classes are allowed and are auto-created for exploratory imports.
 
-The current `RelationEngine` accepts rule candidates immediately after creating them. Manual review workflows are exposed through candidate CLI commands and can become richer in later milestones.
+The legacy nearest-neighbor `RelationEngine` path accepts rule candidates immediately to preserve earlier workflow behavior. Round 11 bbox containment, bbox overlap, and text label binding strategies default to pending `relation_candidate` rows unless a rule config explicitly sets `auto_accept`.
+
+Round 11 relation strategies are deterministic heuristics, not AI recognition. They require imported object geometry and rule templates with strategy config such as `bbox_containment`, `bbox_overlap`, or `text_label_binding`.
 
 `generate-quantities` is not a budget generator. It creates auditable quantity rows that later budget services can price. Unsupported formula methods and missing geometry produce `manual_review` quantity rows with evidence explaining the reason.
 
@@ -202,6 +210,8 @@ The current `RelationEngine` accepts rule candidates immediately after creating 
 - `samples/demo_recognition.json`: synthetic recognition evidence with primitives, a candidate, and an object hypothesis.
 - `samples/demo_parser_output.json`: representative parser-adapter input converted into recognition evidence by `sample-json`.
 - `samples/demo_rules.json`: one spatial rule that infers `DDC mounted_on CONTROL_PANEL`.
+- `samples/demo_round11_relations.json`: demo objects for containment, overlap, and text label relation inference.
+- `samples/demo_round11_rules.json`: demo Round 11 rule strategies for bbox and label inference.
 - `samples/demo_cost_items.json`: demo cost item library for CONTROL_PANEL and DDC quantities.
 - `dwg_rec_system/taxonomy/cad_object_taxonomy.json`: primary CAD object taxonomy and the source for `object_class`.
 - `dwg_rec_system/taxonomy/engineering_class_profiles.json`: engineering profile overlay used by quantity generation and future budget/installation services.
@@ -240,6 +250,7 @@ python -m dwg_rec_system.cli init-db
 - `docs/agent_tasks_round_8.md`: completed workflow planning task package.
 - `docs/agent_tasks_round_9.md`: completed recognition modeling task package.
 - `docs/agent_tasks_round_10.md`: completed parser adapter boundary task package.
+- `docs/agent_tasks_round_11.md`: completed stronger deterministic relation inference task package.
 - `docs/agent_tasks_round_9.md`: completed recognition modeling task package.
 - `docs/taxonomy_profile.md`: taxonomy profile shape and usage guide.
 - `docs/final_roadmap.md`: long-term database and module roadmap for multi-discipline budgeting and installation planning.

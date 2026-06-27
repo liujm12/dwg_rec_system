@@ -1,0 +1,77 @@
+{
+  "version": "0.1",
+  "project": {
+    "code": "ROUND11",
+    "name": "Round 11 Relation Inference Demo"
+  },
+  "drawing": {
+    "drawing_no": "R11-001",
+    "revision": "A",
+    "discipline": "General",
+    "sheet": "1",
+    "title": "Round 11 deterministic relation inference",
+    "source_file": "round11.dwg"
+  },
+  "objects": [
+    {
+      "class_name": "ROOM",
+      "source_file": "round11.dwg",
+      "handle": "ROOM01",
+      "confidence": 0.98,
+      "geometry": {
+        "min_x": 0,
+        "min_y": 0,
+        "max_x": 300,
+        "max_y": 220
+      },
+      "attributes": {
+        "name": "BMS Room"
+      }
+    },
+    {
+      "class_name": "CONTROL_PANEL",
+      "source_file": "round11.dwg",
+      "handle": "CP01",
+      "confidence": 0.96,
+      "geometry": {
+        "min_x": 80,
+        "min_y": 60,
+        "max_x": 160,
+        "max_y": 150
+      },
+      "attributes": {
+        "tag": "CP-01"
+      }
+    },
+    {
+      "class_name": "DDC",
+      "source_file": "round11.dwg",
+      "handle": "DDC01",
+      "confidence": 0.94,
+      "geometry": {
+        "min_x": 100,
+        "min_y": 82,
+        "max_x": 130,
+        "max_y": 120
+      },
+      "attributes": {
+        "tag": "DDC-01"
+      }
+    },
+    {
+      "class_name": "TEXT_LABEL",
+      "source_file": "round11.dwg",
+      "handle": "TXT01",
+      "confidence": 0.93,
+      "geometry": {
+        "min_x": 165,
+        "min_y": 92,
+        "max_x": 205,
+        "max_y": 108
+      },
+      "attributes": {
+        "text": "CP-01"
+      }
+    }
+  ]
+}

@@ -348,39 +348,37 @@ Success criteria:
 
 ## Milestone 11: Stronger Rule Inference
 
-Status: NEXT.
+Status: COMPLETE.
 
 Goal:
 
 Expand relation inference beyond nearest mounted-on rules.
 
-Candidate relation types:
+Completed relation types:
 
 - `contains`
 - `located_in`
 - `labels`
-- `installed_in`
-- `installed_on`
-- `connected_to`
-- `located_on_axis`
+- `overlaps`
 
-Candidate rule strategies:
+Completed rule strategies:
 
 - bbox containment
 - bbox overlap ratio
 - nearest text-to-object label binding
-- class-compatible relation templates
-- layer/block-based confidence hints
+- strategy selection through rule template `config`
+- deterministic evidence with thresholds, ratios, distances, and bboxes
 
 Success criteria:
 
 - Rules produce `relation_candidate` records.
-- Accepted relations preserve evidence.
-- Tests cover each new rule type.
+- Round 11 strategies default to pending candidates for review.
+- Accepted relations still preserve evidence through the existing acceptance path.
+- Tests cover bbox helpers, containment, overlap, labels, invalid geometry, idempotency, and CLI flow.
 
 ## Milestone 12: Review And Correction Workflow
 
-Status: PLANNED.
+Status: NEXT.
 
 Goal:
 
@@ -458,6 +456,6 @@ Success criteria:
 
 ## Near-Term Priority
 
-Do stronger rule inference next.
+Do review and correction workflow next.
 
-The quantity, data quality, budgeting, installation guidance, workflow planning, recognition modeling, and parser adapter boundary layers are now in place. The next practical step is to improve deterministic relation inference across containment, overlap, labels, and installation-oriented relation types. Real DXF/PDF parser adapters can be connected through the new parser boundary when parser dependencies and sample files are chosen.
+The quantity, data quality, budgeting, installation guidance, workflow planning, recognition modeling, parser adapter boundary, and stronger deterministic relation inference layers are now in place. The next practical step is to make pending candidates and corrections operational so users can review, accept, reject, and audit uncertain recognition and relation results before downstream budget or installation workflows depend on them.

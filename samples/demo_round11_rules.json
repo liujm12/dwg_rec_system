@@ -1,0 +1,57 @@
+{
+  "version": "0.1",
+  "rules": [
+    {
+      "name": "Room contains control panel by bbox",
+      "source_class": "ROOM",
+      "target_class": "CONTROL_PANEL",
+      "relation_type": "contains",
+      "min_confidence": 0.6,
+      "priority": 10,
+      "enabled": true,
+      "config": {
+        "strategy": "bbox_containment",
+        "threshold": 0.9
+      }
+    },
+    {
+      "name": "Control panel contains DDC by bbox",
+      "source_class": "DDC",
+      "target_class": "CONTROL_PANEL",
+      "relation_type": "located_in",
+      "min_confidence": 0.6,
+      "priority": 20,
+      "enabled": true,
+      "config": {
+        "strategy": "bbox_containment",
+        "threshold": 0.9
+      }
+    },
+    {
+      "name": "DDC overlaps control panel by bbox",
+      "source_class": "DDC",
+      "target_class": "CONTROL_PANEL",
+      "relation_type": "overlaps",
+      "min_confidence": 0.45,
+      "priority": 30,
+      "enabled": true,
+      "config": {
+        "strategy": "bbox_overlap",
+        "threshold": 0.05
+      }
+    },
+    {
+      "name": "Text label points to nearest control panel",
+      "source_class": "TEXT_LABEL",
+      "target_class": "CONTROL_PANEL",
+      "relation_type": "labels",
+      "max_distance": 80,
+      "min_confidence": 0.55,
+      "priority": 40,
+      "enabled": true,
+      "config": {
+        "strategy": "text_label_binding"
+      }
+    }
+  ]
+}
