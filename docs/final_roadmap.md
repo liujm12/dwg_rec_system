@@ -952,7 +952,7 @@ Scope:
 
 ### M12: Review And Correction Workflow
 
-Status: next.
+Status: complete.
 
 Scope:
 
@@ -960,13 +960,26 @@ Scope:
 - add correction workflow around accepted relations and object attributes
 - preserve operator, reason, old value, and new value in audit records
 - keep downstream budget, installation, and workflow services consuming accepted truth by default
+- add annotated ground-truth evaluation for object hypotheses
 
-### M13: API And UI
+### M13: Real Parser Adapter Implementation
+
+Status: next.
+
+Scope:
+
+- connect one real drawing source through the parser adapter boundary
+- prefer DXF or PDF vector extraction first if tooling is locally available
+- preserve primitives, text, layers, blocks, bbox, source-local ids, and parser metadata
+- write recognition candidates and object hypotheses, not final objects
+- evaluate output against annotated ground truth
+
+### M14: API And UI
 
 Scope:
 
 - expose import, object list, object detail, candidates, relations, quantity, budget, and installation plans through API
-- add review UI for candidates and corrections
+- add review UI for candidates, corrections, and evaluation reports
 - add report views for budget and installation workflow
 
 Do not duplicate service logic in the API layer.
@@ -985,7 +998,7 @@ The most practical sequence from the current repository state is:
 7. Complete parser adapter boundary.
 8. Strengthen deterministic relation inference.
 9. Improve review and correction workflow.
-10. Connect real DWG/DXF/PDF parser adapters.
+10. Connect real DWG/DXF/PDF parser adapters and evaluate output.
 11. Add API and UI.
 ```
 

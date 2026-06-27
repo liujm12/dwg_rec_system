@@ -682,7 +682,18 @@ CREATE TABLE IF NOT EXISTS manual_relation (
 
 CREATE TABLE IF NOT EXISTS correction_log (
     id TEXT PRIMARY KEY,
-    entity_type TEXT NOT NULL CHECK (entity_type IN ('object', 'relation', 'attribute', 'geometry', 'drawing')),
+    entity_type TEXT NOT NULL CHECK (
+        entity_type IN (
+            'object',
+            'relation',
+            'relation_candidate',
+            'recognition_candidate',
+            'object_hypothesis',
+            'attribute',
+            'geometry',
+            'drawing'
+        )
+    ),
     entity_id TEXT NOT NULL,
     field_name TEXT NOT NULL,
     old_value TEXT,

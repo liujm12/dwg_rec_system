@@ -74,6 +74,14 @@ def overlap_ratios(a: dict[str, Any] | None, b: dict[str, Any] | None) -> dict[s
     }
 
 
+def bbox_iou(a: dict[str, Any] | None, b: dict[str, Any] | None) -> float:
+    first_area = bbox_area(a)
+    second_area = bbox_area(b)
+    intersection_area = bbox_area(bbox_intersection(a, b))
+    union_area = first_area + second_area - intersection_area
+    return round(intersection_area / union_area, 6) if union_area > 0 else 0.0
+
+
 def bbox_center(bbox: dict[str, Any] | None) -> tuple[float, float] | None:
     normalized = normalize_bbox(bbox)
     if not normalized:

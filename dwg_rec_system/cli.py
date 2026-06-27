@@ -21,6 +21,7 @@ from .repositories import (
     RelationCandidateRepository,
     RelationRepository,
     SourceDocumentRepository,
+    CorrectionLogRepository,
     WorkflowIssueRepository,
     WorkflowPlanRepository,
     WorkflowStepRepository,
@@ -41,6 +42,7 @@ from .services.parser_import import ParserImportService, list_parser_adapters
 from .services.quantity import QuantityGenerator
 from .services.recognition import HypothesisAcceptanceService, RecognitionImportService
 from .services.relation_engine import RelationEngine
+from .services.review import ObjectCorrectionService, RecognitionEvaluationService, ReviewService
 from .services.rules import RuleTemplateSeeder
 from .services.spatial_index import SpatialIndex
 from .services.taxonomy import TaxonomySeeder
@@ -184,6 +186,87 @@ def cmd_reject_candidate(args: argparse.Namespace) -> None:
     with session() as connection:
         RelationCandidateRepository(connection).reject(args.candidate_id)
     print(json.dumps({"candidate_id": args.candidate_id, "status": "rejected"}, ensure_ascii=False, indent=2))
+
+
+def cmd_review_candidate(args: argparse.Namespace) -> None:
+    with session() as connection:
+        result = ReviewService(connection).review_relation_candidate(
+            candidate_id=args.candidate_id,
+            action=args.action,
+            operator=args.operator,
+            reason=args.reason,
+        )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+def cmd_review_hypothesis(args: argparse.Namespace) -> None:
+    with session() as connection:
+        result = ReviewService(connection).review_object_hypothesis(
+            hypothesis_id=args.hypothesis_id,
+            action=args.action,
+            operator=args.operator,
+            reason=args.reason,
+        )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+def cmd_correct_object_class(args: argparse.Namespace) -> None:
+    with session() as connection:
+        result = ObjectCorrectionService(connection).correct_class(
+            object_id=args.object_id,
+            class_code=args.class_code,
+            operator=args.operator,
+            reason=args.reason,
+        )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+def cmd_set_object_attribute(args: argparse.Namespace) -> None:
+    with session() as connection:
+        result = ObjectCorrectionService(connection).set_attribute(
+            object_id=args.object_id,
+            key=args.key,
+            value=args.value,
+            namespace=args.namespace,
+            operator=args.operator,
+            reason=args.reason,
+        )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+def cmd_correct_object_bbox(args: argparse.Namespace) -> None:
+    with session() as connection:
+        result = ObjectCorrectionService(connection).correct_bbox(
+            object_id=args.object_id,
+            bbox={
+                "min_x": args.min_x,
+                "min_y": args.min_y,
+                "max_x": args.max_x,
+                "max_y": args.max_y,
+            },
+            operator=args.operator,
+            reason=args.reason,
+        )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+def cmd_list_corrections(args: argparse.Namespace) -> None:
+    with session() as connection:
+        rows = CorrectionLogRepository(connection).list(
+            entity_type=args.entity_type,
+            entity_id=args.entity_id,
+        )
+    print(json.dumps(rows, ensure_ascii=False, indent=2))
+
+
+def cmd_evaluate_recognition(args: argparse.Namespace) -> None:
+    with session() as connection:
+        result = RecognitionEvaluationService(connection).evaluate_file(
+            args.ground_truth,
+            iou_threshold=args.iou_threshold,
+            status=args.status,
+        )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
 
 
 def cmd_export_csv(args: argparse.Namespace) -> None:
@@ -567,6 +650,93 @@ def build_parser() -> argparse.ArgumentParser:
     reject_candidate = subparsers.add_parser("reject-candidate", help="Reject a relation candidate.")
     reject_candidate.add_argument("candidate_id")
     reject_candidate.set_defaults(func=cmd_reject_candidate)
+
+    review_candidate = subparsers.add_parser(
+        "review-candidate",
+        help="Accept or reject a relation candidate with correction-log audit.",
+    )
+    review_candidate.add_argument("candidate_id")
+    review_candidate.add_argument("--action", choices=["accept", "reject"], required=True)
+    review_candidate.add_argument("--operator")
+    review_candidate.add_argument("--reason")
+    review_candidate.set_defaults(func=cmd_review_candidate)
+
+    review_hypothesis = subparsers.add_parser(
+        "review-hypothesis",
+        help="Accept or reject an object hypothesis with correction-log audit.",
+    )
+    review_hypothesis.add_argument("hypothesis_id")
+    review_hypothesis.add_argument("--action", choices=["accept", "reject"], required=True)
+    review_hypothesis.add_argument("--operator")
+    review_hypothesis.add_argument("--reason")
+    review_hypothesis.set_defaults(func=cmd_review_hypothesis)
+
+    correct_class = subparsers.add_parser(
+        "correct-object-class",
+        help="Correct a recognized object's class and write correction_log.",
+    )
+    correct_class.add_argument("object_id")
+    correct_class.add_argument("--class-code", required=True)
+    correct_class.add_argument("--operator")
+    correct_class.add_argument("--reason")
+    correct_class.set_defaults(func=cmd_correct_object_class)
+
+    set_attribute = subparsers.add_parser(
+        "set-object-attribute",
+        help="Set a recognized object attribute and write correction_log.",
+    )
+    set_attribute.add_argument("object_id")
+    set_attribute.add_argument("--key", required=True)
+    set_attribute.add_argument("--value")
+    set_attribute.add_argument("--namespace", default="default")
+    set_attribute.add_argument("--operator")
+    set_attribute.add_argument("--reason")
+    set_attribute.set_defaults(func=cmd_set_object_attribute)
+
+    correct_bbox = subparsers.add_parser(
+        "correct-object-bbox",
+        help="Correct a recognized object's bbox geometry and write correction_log.",
+    )
+    correct_bbox.add_argument("object_id")
+    correct_bbox.add_argument("--min-x", type=float, required=True)
+    correct_bbox.add_argument("--min-y", type=float, required=True)
+    correct_bbox.add_argument("--max-x", type=float, required=True)
+    correct_bbox.add_argument("--max-y", type=float, required=True)
+    correct_bbox.add_argument("--operator")
+    correct_bbox.add_argument("--reason")
+    correct_bbox.set_defaults(func=cmd_correct_object_bbox)
+
+    list_corrections = subparsers.add_parser(
+        "list-corrections",
+        help="List correction_log rows.",
+    )
+    list_corrections.add_argument(
+        "--entity-type",
+        choices=[
+            "object",
+            "relation",
+            "relation_candidate",
+            "recognition_candidate",
+            "object_hypothesis",
+            "attribute",
+            "geometry",
+            "drawing",
+        ],
+    )
+    list_corrections.add_argument("--entity-id")
+    list_corrections.set_defaults(func=cmd_list_corrections)
+
+    evaluate_recognition = subparsers.add_parser(
+        "evaluate-recognition",
+        help="Evaluate object hypotheses against annotated ground-truth JSON.",
+    )
+    evaluate_recognition.add_argument("--ground-truth", required=True)
+    evaluate_recognition.add_argument("--iou-threshold", type=float, default=0.5)
+    evaluate_recognition.add_argument(
+        "--status",
+        choices=["pending", "accepted", "rejected", "merged", "superseded"],
+    )
+    evaluate_recognition.set_defaults(func=cmd_evaluate_recognition)
 
     export = subparsers.add_parser("export-csv", help="Export object list as CSV.")
     export.add_argument("--output", default=str(Path("exports/objects.csv")))

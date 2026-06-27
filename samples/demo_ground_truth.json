@@ -1,0 +1,21 @@
+{
+  "version": "0.1",
+  "source_uri": "samples/demo_parser_output.pdf",
+  "objects": [
+    {
+      "id": "gt-cp01",
+      "class_code": "CONTROL_PANEL",
+      "bbox": {
+        "min_x": 100,
+        "min_y": 100,
+        "max_x": 160,
+        "max_y": 180
+      },
+      "attributes": {
+        "tag": "CP-01",
+        "system": "BMS"
+      }
+    }
+  ],
+  "relations": []
+}

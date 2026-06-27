@@ -378,24 +378,49 @@ Success criteria:
 
 ## Milestone 12: Review And Correction Workflow
 
-Status: NEXT.
+Status: COMPLETE.
 
 Goal:
 
 Make uncertain inference and manual correction operational.
 
-Candidate work:
+Completed:
 
-- CLI/API commands for manual relation correction.
-- Tests for correction log behavior.
-- Artifact records for generated files.
+- Added review commands for relation candidates and object hypotheses with operator/reason audit.
+- Added object class, attribute, and bbox correction services.
+- Extended correction audit coverage to relation candidates, recognition candidates, and object hypotheses.
+- Added annotated ground-truth JSON format for recognition evaluation.
+- Added prototype object-hypothesis evaluation report with IoU matching, precision, recall, false positives, and false negatives.
 
 Success criteria:
 
 - Manual correction marks old relation state and creates audit records.
 - Candidate review and manual correction can be performed without direct SQL.
+- Recognition output can be measured against annotated ground truth.
 
-## Milestone 13: API Layer
+## Milestone 13: Real Parser Adapter Implementation
+
+Status: NEXT.
+
+Goal:
+
+Connect real drawing sources to the recognition layer.
+
+Candidate work:
+
+- Choose the first real source type: DXF, PDF vector extraction, DWG via approved tooling, or CAD plugin export.
+- Implement one real parser adapter behind the existing parser boundary.
+- Preserve primitives, text, layers, blocks, bbox, source-local ids, and parser metadata.
+- Generate recognition candidates and object hypotheses, not final objects.
+- Evaluate parser output with the ground-truth report.
+
+Success criteria:
+
+- Real or semi-real drawing files produce recognition records.
+- Parser output remains reviewable and measurable.
+- No parser writes directly to `cad_object`.
+
+## Milestone 14: API Layer
 
 Status: PLANNED.
 
@@ -406,15 +431,15 @@ Expose the object store and inference workflows to UI, CAD plugins, and LLM serv
 Candidate work:
 
 - Add FastAPI or similar only after dependency decision.
-- Endpoints for import, list objects, object detail, candidates, relations, quantity, budget, installation plan, and export.
+- Endpoints for import, list objects, object detail, candidates, relations, quantity, budget, installation plan, correction, evaluation, and export.
 - Keep CLI behavior working.
 
 Success criteria:
 
 - API calls use the same service layer as CLI.
-- No duplicate import, inference, quantity, budget, or installation logic.
+- No duplicate import, inference, quantity, budget, correction, evaluation, or installation logic.
 
-## Milestone 14: Local LLM Inference Layer
+## Milestone 15: Local LLM Inference Layer
 
 Status: PLANNED.
 
@@ -434,7 +459,7 @@ Success criteria:
 - LLM output never writes directly to `relation`.
 - LLM service can be disabled without breaking deterministic workflows.
 
-## Milestone 15: Production Database Path
+## Milestone 16: Production Database Path
 
 Status: PLANNED.
 
@@ -456,6 +481,6 @@ Success criteria:
 
 ## Near-Term Priority
 
-Do review and correction workflow next.
+Do real parser adapter implementation next.
 
-The quantity, data quality, budgeting, installation guidance, workflow planning, recognition modeling, parser adapter boundary, and stronger deterministic relation inference layers are now in place. The next practical step is to make pending candidates and corrections operational so users can review, accept, reject, and audit uncertain recognition and relation results before downstream budget or installation workflows depend on them.
+The quantity, data quality, budgeting, installation guidance, workflow planning, recognition modeling, parser adapter boundary, stronger deterministic relation inference, and review/correction/evaluation loop are now in place. The next practical step is to connect a real DXF/PDF/DWG source through the parser adapter boundary and measure its output against annotated ground truth.

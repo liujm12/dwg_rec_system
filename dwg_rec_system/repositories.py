@@ -501,6 +501,13 @@ class RelationCandidateRepository:
         ).fetchall()
         return [dict(row) for row in rows]
 
+    def get(self, candidate_id: str) -> dict[str, Any] | None:
+        row = self.connection.execute(
+            "SELECT * FROM relation_candidate WHERE id = ?",
+            (candidate_id,),
+        ).fetchone()
+        return row_to_dict(row)
+
     def upsert(
         self,
         source_id: str,
@@ -2236,6 +2243,31 @@ class CorrectionLogRepository:
             ),
         )
         return correction_id
+
+    def list(
+        self,
+        entity_type: str | None = None,
+        entity_id: str | None = None,
+    ) -> list[dict[str, Any]]:
+        conditions: list[str] = []
+        params: list[Any] = []
+        if entity_type:
+            conditions.append("entity_type = ?")
+            params.append(entity_type)
+        if entity_id:
+            conditions.append("entity_id = ?")
+            params.append(entity_id)
+        where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+        rows = self.connection.execute(
+            f"""
+            SELECT *
+            FROM correction_log
+            {where}
+            ORDER BY created_at, id
+            """,
+            params,
+        ).fetchall()
+        return [dict(row) for row in rows]
 
 
 def seed_rules(connection: sqlite3.Connection, rules: Iterable[RuleTemplateInput]) -> None:

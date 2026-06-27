@@ -108,6 +108,7 @@ Human changes should be represented with:
 
 - `manual_relation` for relation-specific corrections
 - `correction_log` for general object, relation, attribute, geometry, or drawing corrections
+- review actions for `relation_candidate`, `recognition_candidate`, and `object_hypothesis` should also write `correction_log`
 
 Auditability is a product requirement, not an optional feature.
 

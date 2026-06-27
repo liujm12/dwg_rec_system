@@ -45,6 +45,7 @@ The long-term roadmap covers multi-discipline equipment recognition, quantity ta
 - Rule-based relation inference through `relation_candidate -> relation`.
 - Stronger deterministic relation inference for bbox containment, bbox overlap, and text label binding.
 - Candidate review CLI for listing, accepting, and rejecting relation candidates.
+- Recognition accuracy loop for audited candidate/hypothesis review, object correction, and ground-truth evaluation.
 - Quantity takeoff into durable `quantity_item` rows from engineering profiles, geometry, and attributes.
 - Data quality checks for missing attributes, missing geometry, low confidence, manual-review quantities, missing profiles, and missing accepted relations.
 - Budget generation from `quantity_item` and seeded `cost_item` rows.
@@ -88,6 +89,7 @@ python -m dwg_rec_system.cli list-workflow-issues
 python -m dwg_rec_system.cli import-recognition-json --input samples/demo_recognition.json
 python -m dwg_rec_system.cli list-parser-adapters
 python -m dwg_rec_system.cli import-parser-output --input samples/demo_parser_output.json --adapter sample-json
+python -m dwg_rec_system.cli evaluate-recognition --ground-truth samples/demo_ground_truth.json
 python -m dwg_rec_system.cli list-source-documents
 python -m dwg_rec_system.cli list-recognition-candidates
 python -m dwg_rec_system.cli list-object-hypotheses
@@ -118,6 +120,7 @@ Expected result:
 - workflow planning creates `workflow_plan`, ordered `workflow_step` rows, and reviewable `workflow_issue` rows
 - recognition import creates source/page/primitive/candidate/hypothesis records without creating final objects
 - parser adapter import converts representative parser output into the same recognition records without creating final objects
+- recognition evaluation compares object hypotheses with annotated ground truth and reports precision/recall
 - CSV export writes `exports/objects.csv`
 - recognition CSV export writes `exports/recognition_candidates.csv` and `exports/object_hypotheses.csv`
 - quantity CSV export writes `exports/quantities.csv`
@@ -154,6 +157,8 @@ Round 11 relation strategies are deterministic heuristics, not AI recognition. T
 
 `import-parser-output` imports through a parser adapter boundary. The bundled `sample-json` adapter is a deterministic representative adapter used to prove the contract from parser-like output into recognition records. It is not a real PDF, DWG, DXF, image, OCR, or CV parser, and it does not create `cad_object` rows automatically.
 
+Review and correction commands write `correction_log` rows. They are the first recognition accuracy loop, not a replacement for real parser/model evaluation. Ground-truth evaluation currently compares `object_hypothesis` rows by class and bbox IoU.
+
 ## CLI Commands
 
 | Command | Description |
@@ -170,6 +175,13 @@ Round 11 relation strategies are deterministic heuristics, not AI recognition. T
 | `list-candidates --status accepted` | Filter candidates by status. |
 | `accept-candidate <candidate_id>` | Accept a relation candidate into final `relation`. |
 | `reject-candidate <candidate_id>` | Mark a relation candidate as rejected. |
+| `review-candidate <candidate_id> --action accept\|reject` | Review a relation candidate and write correction audit. |
+| `review-hypothesis <hypothesis_id> --action accept\|reject` | Review an object hypothesis and write correction audit. |
+| `correct-object-class <object_id> --class-code <class>` | Correct object class and write correction audit. |
+| `set-object-attribute <object_id> --key <key> --value <value>` | Correct object attribute and write correction audit. |
+| `correct-object-bbox <object_id> --min-x X --min-y Y --max-x X --max-y Y` | Correct object bbox geometry and write correction audit. |
+| `list-corrections [--entity-type <type>] [--entity-id <id>]` | List correction audit rows. |
+| `evaluate-recognition --ground-truth <file> [--iou-threshold N]` | Compare object hypotheses with annotated ground truth. |
 | `export-csv [--output <file>]` | Export recognized objects to CSV. |
 | `generate-quantities [--project-id <id>] [--drawing-id <id>]` | Generate `quantity_item` rows from objects and engineering profiles. |
 | `list-quantities [--class-code <class>] [--status <status>]` | List generated quantity rows as JSON. |
@@ -209,6 +221,7 @@ Round 11 relation strategies are deterministic heuristics, not AI recognition. T
 - `samples/demo_parsed.json`: normalized parser output with one control panel and one DDC controller.
 - `samples/demo_recognition.json`: synthetic recognition evidence with primitives, a candidate, and an object hypothesis.
 - `samples/demo_parser_output.json`: representative parser-adapter input converted into recognition evidence by `sample-json`.
+- `samples/demo_ground_truth.json`: annotated ground-truth sample for recognition evaluation.
 - `samples/demo_rules.json`: one spatial rule that infers `DDC mounted_on CONTROL_PANEL`.
 - `samples/demo_round11_relations.json`: demo objects for containment, overlap, and text label relation inference.
 - `samples/demo_round11_rules.json`: demo Round 11 rule strategies for bbox and label inference.
@@ -251,6 +264,7 @@ python -m dwg_rec_system.cli init-db
 - `docs/agent_tasks_round_9.md`: completed recognition modeling task package.
 - `docs/agent_tasks_round_10.md`: completed parser adapter boundary task package.
 - `docs/agent_tasks_round_11.md`: completed stronger deterministic relation inference task package.
+- `docs/recognition_accuracy_loop.md`: review, correction, annotation, and evaluation loop design.
 - `docs/agent_tasks_round_9.md`: completed recognition modeling task package.
 - `docs/taxonomy_profile.md`: taxonomy profile shape and usage guide.
 - `docs/final_roadmap.md`: long-term database and module roadmap for multi-discipline budgeting and installation planning.
